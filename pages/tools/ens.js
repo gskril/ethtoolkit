@@ -19,23 +19,36 @@ export default function ENS() {
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
 
 	async function checkName(name) {
+		if (name.length < 5) {
+			toast.error('Please enter a valid name')
+			return
+		}
+
 		fetch(`https://api.ensideas.com/ens/resolve/${name}`)
 			.then((res) => res.json())
 			.then((data) => {
 				if (data.address) {
-					toast.error(`${name} is not available.`)
+					toast.error(`${name} is not available`)
 				} else {
-					toast.success(`${name} is available!`)
+					toast.success(`${name} is available`)
 				}
+			})
+			.catch((err) => {
+				toast.error('Error checking name availability')
 			})
 	}
 
 	async function checkRecords(name) {
+		if (name.length < 5) {
+			toast.error('Please enter a valid name')
+			return
+		}
+
 		fetch(`https://ens-records.vercel.app/${name}`)
 			.then((res) => res.json())
 			.then((data) => {
 				if (data.error) {
-					toast.error(`Error fetching records for ${name}.`)
+					toast.error(`Error fetching records for ${name}`)
 				} else {
 					const toatsMsg = ''
 					const recordsArray = Object.entries(data).map(
