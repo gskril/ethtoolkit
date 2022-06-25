@@ -3,7 +3,7 @@ import Link from 'next/link'
 export default function Tool({ name, slug, color }) {
 	return (
 		<div className="tool">
-			<Link href={'/tools/' + slug}>
+			<Link href={'/' + slug}>
 				<a className="link">
 					<h2>{name}</h2>
 					<span className="arrow">→</span>
