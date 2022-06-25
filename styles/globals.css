@@ -75,6 +75,11 @@ p:not(:last-of-type) {
   margin-bottom: 1rem;
 }
 
+input {
+  font-size: inherit;
+  border: none;
+}
+
 .container {
   max-width: 45rem;
   padding: 2rem 1rem;
@@ -103,7 +108,7 @@ p:not(:last-of-type) {
 }
 
 .section {
-
+  margin-bottom: 2rem;
 }
 
 .section__title {
