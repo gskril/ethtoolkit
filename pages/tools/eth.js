@@ -1,8 +1,11 @@
 import Head from 'next/head'
 import { useState } from 'react'
 import useFetch from '../../hooks/fetch'
+import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
+import { useSendTransaction } from 'wagmi'
+import { BigNumber } from 'ethers'
 
 export default function Eth() {
 	const gasBest = useFetch('https://gas.best/stats')
@@ -11,8 +14,29 @@ export default function Eth() {
 		currency: 'USD',
 	}).format(gasBest.data?.ethPrice)
 
-	const [ethConversion, setEthConversion] = useState(null)
-	const [weiConversion, setWeiConversion] = useState(null)
+	const [ethConversion, setEthConversion] = useState('')
+	const [weiConversion, setWeiConversion] = useState('')
+	const [ethToTransfer, setEthToTransfer] = useState(0)
+	const [destinationAddress, setDestinationAddress] = useState(null)
+
+	const { sendTransaction } = useSendTransaction({
+		request: {
+			to: destinationAddress,
+			value: (ethToTransfer * 1000000000000000000).toString(),
+		},
+		onSuccess(data) {
+			console.log('Success', data)
+			toast.success('Transaction submitted successfully!')
+		},
+		onError(error) {
+			if (error.message.includes('insufficient funds')) {
+				toast.error('Insufficient funds')
+			} else {
+				toast.error(error.message)
+				console.log(error, destinationAddress)
+			}
+		},
+	})
 
 	return (
 		<>
@@ -38,6 +62,37 @@ export default function Eth() {
 							type="number"
 							number={gasBest.data?.pending?.fee}
 						/>
+					</div>
+				</div>
+
+				<div className="section">
+					<h2 className="section__title">Transactions</h2>
+					<div className="grid grid--3">
+						<Card label="Transfer ETH">
+							<div>
+								<input
+									type="number"
+									step={0.01}
+									placeholder="0.75"
+									onChange={(e) =>
+										setEthToTransfer(e.target.value)
+									}
+								/>
+								<input
+									type="text"
+									placeholder="gregskril.eth"
+									onChange={(e) => {
+										setDestinationAddress(e.target.value)
+									}}
+								/>
+								<button
+									type="submit"
+									onClick={() => sendTransaction()}
+								>
+									Transfer
+								</button>
+							</div>
+						</Card>
 					</div>
 				</div>
 
@@ -90,6 +145,8 @@ export default function Eth() {
 					</div>
 				</div>
 			</main>
+
+			<Toaster position="bottom-center" reverseOrder={false} />
 
 			<style jsx>{`
 				.converter {
