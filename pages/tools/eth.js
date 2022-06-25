@@ -67,7 +67,7 @@ export default function Eth() {
 
 				<div className="section">
 					<h2 className="section__title">Transactions</h2>
-					<div className="grid grid--3">
+					<div className="grid grid--2">
 						<Card label="Transfer ETH">
 							<div>
 								<input

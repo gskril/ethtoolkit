@@ -4,7 +4,7 @@ const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
 export default function useFetch(...args) {
 	const { data, error } = useSWR(...args, fetcher, {
-		refreshInterval: 1000 * 30,
+		refreshInterval: process.env.DEV_ENV ? 1000 * 120 : 1000 * 30,
 	})
 
 	return {

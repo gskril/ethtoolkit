@@ -32,7 +32,7 @@ a {
   --blue-100: #DBEAFE;
   --blue-200: #BFDBFE;
   --blue-300: #93C5FD;
-  --blue-400: #60A5;
+  --blue-400: #60A5FA;
   --blue-500: #3B82F6;
   --blue-600: #2563EB;
   --blue-700: #1D4ED8;
@@ -75,9 +75,25 @@ p:not(:last-of-type) {
   margin-bottom: 1rem;
 }
 
-input {
+input,
+button {
   font-size: inherit;
   border: none;
+}
+
+button {
+  background-color: var(--blue-400);
+  color: var(--gray-50);
+  font-weight: 600;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  transition: background-color 150ms ease-in-out;
+}
+
+button:hover,
+button:focus-visible {
+  cursor: pointer;
+  background-color: var(--blue-500);
 }
 
 .container {
@@ -114,6 +130,25 @@ input {
 .section__title {
   font-size: 26px;
   margin-bottom: 1rem;
+}
+
+.input-group {
+  display: flex;
+}
+
+.input-group {
+  font-size: 1.125rem;
+  font-weight: bold;
+  margin: 0 auto;
+  display: block;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.input-group input,
+.input-group button {
+  padding: 0.5rem;
 }
 
 @media screen and (max-width: 768px) {
