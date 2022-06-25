@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Hero from '../../components/tool-hero'
+import Card from '../../components/card'
 
 export default function Eth() {
 	return (
@@ -15,22 +16,8 @@ export default function Eth() {
         <div className="section">
           <h2 className="section__title">Statistics</h2>
           <div className="grid grid--2">
-            <div className="card">
-              <span className="card__label">Price (USD)</span>
-              <div className="card__content">
-                <span className="card__number">
-                  $1,241.72
-                </span>
-              </div>
-            </div>
-            <div className="card">
-              <span className="card__label">Price (USD)</span>
-              <div className="card__content">
-                <span className="card__number">
-                  $1,241.72
-                </span>
-              </div>
-            </div>
+            <Card label="Price (USD)" type="number" number="$1,241.72"/>
+            <Card label="Price (USD)" type="number" number="$1,241.72"/>
           </div>
         </div>
       </main>
