@@ -4,7 +4,7 @@ import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
-import { useSendTransaction } from 'wagmi'
+import { useAccount, useContractWrite } from 'wagmi'
 
 export default function ENS() {
 	const ensStats = useFetch(
@@ -75,6 +75,32 @@ export default function ENS() {
 			})
 	}
 
+	const { data: connectedAccount } = useAccount()
+	const ensTokenAddress = '0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72'
+	const ensContractAbi = ['function delegate(address delegatee)']
+
+	// Delegate on chain
+	const { isError: delegateError, write: delegateTokens } = useContractWrite(
+		{
+			addressOrName: ensTokenAddress,
+			contractInterface: ensContractAbi,
+		},
+		'delegate',
+		{ args: [ensNameToSearch] },
+		{
+			onError(error) {
+				console.log(error)
+				toast.error('Error delegating tokens')
+			},
+		},
+		{
+			onSuccess(data) {
+				console.log(data)
+				toast.success('Tokens delegated')
+			},
+		}
+	)
+
 	return (
 		<>
 			<Head>
@@ -101,6 +127,7 @@ export default function ENS() {
 						/>
 					</div>
 				</div>
+
 				<div className="section">
 					<h2 className="section__title">Read</h2>
 					<div className="grid grid--2">
@@ -137,6 +164,30 @@ export default function ENS() {
 									}}
 								>
 									Check
+								</button>
+							</div>
+						</Card>
+					</div>
+				</div>
+
+				<div className="section">
+					<h2 className="section__title">Write</h2>
+					<div className="grid grid--2">
+						<Card label="Delegate $ENS">
+							<div className="input-group">
+								<input
+									type="text"
+									placeholder="gregskril.eth"
+									onChange={(e) => {
+										setEnsNameToSearch(e.target.value)
+									}}
+								/>
+								<button
+									onClick={() => {
+										delegateTokens()
+									}}
+								>
+									Delegate
 								</button>
 							</div>
 						</Card>
