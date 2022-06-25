@@ -88,3 +88,51 @@ p:not(:last-of-type) {
 .tools {
   margin-top: 1.5rem;
 }
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.section {
+
+}
+
+.section__title {
+  font-size: 26px;
+  margin-bottom: 1rem;
+}
+
+.card {
+  padding: 1rem;
+  color: var(--gray-50);
+  background-color: var(--gray-700);
+  text-align: center;
+  box-shadow: 2px 4px 24px -4px rgba(0, 0, 0, 0.25);
+  border-radius: 0.5rem;
+}
+
+.card__label {
+  color: var(--gray-400);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.card__number {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+@media screen and (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

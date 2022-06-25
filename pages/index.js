@@ -45,7 +45,6 @@ export default function Home() {
 		<div className="container">
 			<Head>
 				<title>Simplify Your Ethereum Toolkit</title>
-				<link rel="icon" href="/favicon.ico" />
 			</Head>
 
       <header className="header">

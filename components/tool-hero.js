@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function Hero({name, description}) {
 
@@ -16,6 +17,10 @@ export default function Hero({name, description}) {
         </Link>
         <h1>{name}</h1>
         <p>{descriptionOutput}</p>
+        <ConnectButton 
+          showBalance={false}
+          chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
+        />
       </div>
 
       <style jsx>{`
@@ -27,6 +32,10 @@ export default function Hero({name, description}) {
           color: var(--neutral-500);
           font-weight: bold;
           font-size: 1.5rem;
+        }
+
+        p {
+          margin-bottom: 1rem;
         }
 
         h1 {
