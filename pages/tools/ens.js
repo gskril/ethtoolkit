@@ -18,31 +18,48 @@ export default function ENS() {
 	)
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
 
-	const ensRecordsApi = useFetch(
-		`https://ens-records.vercel.app/${ensNameToSearch}`
-	)
+	async function checkName(name) {
+		fetch(`https://api.ensideas.com/ens/resolve/${name}`)
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.address) {
+					toast.error(`${name} is not available.`)
+				} else {
+					toast.success(`${name} is available!`)
+				}
+			})
+	}
 
-	if (ensRecordsApi.data && !ensRecordsApi.data.error) {
-		const toatsMsg = ''
-		const records = ensRecordsApi?.data
-		const recordsArray = Object.entries(records).map(([key, value]) => ({
-			key,
-			value,
-		}))
+	async function checkRecords(name) {
+		fetch(`https://ens-records.vercel.app/${name}`)
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.error) {
+					toast.error(`Error fetching records for ${name}.`)
+				} else {
+					const toatsMsg = ''
+					const recordsArray = Object.entries(data).map(
+						([key, value]) => ({
+							key,
+							value,
+						})
+					)
 
-		recordsArray.map((record) => {
-			const recordsToIgnore = ['address', 'avatar']
-			if (recordsToIgnore.includes(record.key)) return
+					recordsArray.map((record) => {
+						const recordsToIgnore = ['address', 'avatar']
+						if (recordsToIgnore.includes(record.key)) return
 
-			// skip if value is empty
-			if (!record.value) return
+						// skip if value is empty
+						if (!record.value) return
 
-			toatsMsg += `${record.key}: ${record.value}\n`
-		})
+						toatsMsg += `${record.key}: ${record.value}\n`
+					})
 
-		toast(toatsMsg, {
-			duration: 6000,
-		})
+					toast(toatsMsg, {
+						duration: 6000,
+					})
+				}
+			})
 	}
 
 	return (
@@ -74,6 +91,24 @@ export default function ENS() {
 				<div className="section">
 					<h2 className="section__title">Read</h2>
 					<div className="grid grid--2">
+						<Card label="Name availability">
+							<div className="input-group">
+								<input
+									type="text"
+									placeholder="gregskril.eth"
+									onChange={(e) => {
+										setEnsNameToSearch(e.target.value)
+									}}
+								/>
+								<button
+									onClick={() => {
+										checkName(ensNameToSearch)
+									}}
+								>
+									Check
+								</button>
+							</div>
+						</Card>
 						<Card label="ENS Records">
 							<div className="input-group">
 								<input
@@ -83,6 +118,13 @@ export default function ENS() {
 										setEnsNameToSearch(e.target.value)
 									}}
 								/>
+								<button
+									onClick={() => {
+										checkRecords(ensNameToSearch)
+									}}
+								>
+									Check
+								</button>
 							</div>
 						</Card>
 					</div>
