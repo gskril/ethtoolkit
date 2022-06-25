@@ -1,10 +1,12 @@
-export default function Card({ label, type, number, children }) {
+export default function Card({ isLoading, label, type, number, children }) {
 	return (
 		<>
 			<div className="card">
 				{label && <div className="label">{label}</div>}
 				<div className="content">
-					{type === 'number' ? (
+					{isLoading ? (
+						<div className="loading"></div>
+					) : type === 'number' ? (
 						<span className="number">{number}</span>
 					) : (
 						children
@@ -25,12 +27,21 @@ export default function Card({ label, type, number, children }) {
 				.label {
 					color: var(--gray-400);
 					display: block;
-					margin-bottom: 0.25rem;
+					margin-bottom: 0.5rem;
 				}
 
 				.number {
 					font-size: 2rem;
 					font-weight: 600;
+					line-height: 1;
+				}
+
+				.loading {
+					width: 60%;
+					height: 2.1rem;
+					border-radius: 0.25rem;
+					background-color: var(--gray-600);
+					margin: 0 auto;
 				}
 			`}</style>
 		</>
