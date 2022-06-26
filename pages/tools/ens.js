@@ -16,6 +16,12 @@ export default function ENS() {
 	const owners = new Intl.NumberFormat('en-US').format(
 		ensStats?.data?.stats?.num_owners
 	)
+
+	const ensToken = useFetch(
+		'https://min-api.cryptocompare.com/data/price?fsym=ENS&tsyms=USD'
+	)
+	const ensTokenPrice = ensToken?.data?.USD
+
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
 
 	async function checkName(name) {
@@ -112,12 +118,15 @@ export default function ENS() {
 				<title>Ethereum Name Service</title>
 			</Head>
 
-			<Hero name="Ethereum Name Service" />
+			<Hero
+				name="Ethereum Name Service"
+				description="See live statistics about ENS and use some of its core functions."
+			/>
 
 			<main className="container">
 				<div className="section">
 					<h2 className="section__title">Analytics</h2>
-					<div className="grid grid--2">
+					<div className="grid grid--3">
 						<Card
 							isLoading={ensStats.isLoading}
 							label=".eth Names Registered"
@@ -129,6 +138,12 @@ export default function ENS() {
 							label="Unique Owners"
 							type="number"
 							number={owners}
+						/>
+						<Card
+							isLoading={ensToken.isLoading}
+							label="$ENS Price"
+							type="number"
+							number={`$${parseFloat(ensTokenPrice).toFixed(2)}`}
 						/>
 					</div>
 				</div>

@@ -14,29 +14,14 @@ const tools = [
 		color: 'linear-gradient(92.29deg, #879AF4 0%, #66B9EB 100%)',
 	},
 	{
-		name: '1inch Network',
-		slug: '1inch',
-		color: 'linear-gradient(92.29deg, #20438C 0%, #280F31 100%)',
-	},
-	{
-		name: 'Lens Protocol',
-		slug: 'lens',
-		color: '#005017',
-	},
-	{
 		name: 'Optimism',
 		slug: './optimism',
 		color: '#EA3431',
 	},
 	{
-		name: 'Gambling',
-		slug: 'gambling',
+		name: 'Degen Lottery',
+		slug: 'lottery',
 		color: '#19191A',
-	},
-	{
-		name: 'Polygon',
-		slug: 'polygon',
-		color: '#7257D5',
 	},
 ]
 
