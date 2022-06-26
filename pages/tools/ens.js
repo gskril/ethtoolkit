@@ -178,6 +178,7 @@ export default function ENS() {
 								<input
 									type="text"
 									placeholder="gregskril.eth"
+									style={{ maxWidth: '11rem' }}
 									onChange={(e) => {
 										setEnsNameToSearch(e.target.value)
 									}}

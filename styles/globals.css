@@ -79,6 +79,7 @@ input,
 button {
   font-size: inherit;
   border: none;
+  padding: 0.5rem;
 }
 
 button {
@@ -129,7 +130,7 @@ button:focus-visible {
 
 .section__title {
   font-size: 26px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .input-group {
@@ -144,11 +145,6 @@ button:focus-visible {
   border-radius: 0.25rem;
   overflow: hidden;
   width: fit-content;
-}
-
-.input-group input,
-.input-group button {
-  padding: 0.5rem;
 }
 
 @media screen and (max-width: 768px) {

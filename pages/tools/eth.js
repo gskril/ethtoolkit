@@ -19,9 +19,30 @@ export default function Eth() {
 	const [ethToTransfer, setEthToTransfer] = useState(0)
 	const [destinationAddress, setDestinationAddress] = useState(null)
 
-	const { sendTransaction } = useSendTransaction({
+	// Transfer ETH
+	const { sendTransaction: transferEth } = useSendTransaction({
 		request: {
 			to: destinationAddress,
+			value: (ethToTransfer * 1000000000000000000).toString(),
+		},
+		onSuccess(data) {
+			console.log('Success', data)
+			toast.success('Transaction submitted successfully!')
+		},
+		onError(error) {
+			if (error.message.includes('insufficient funds')) {
+				toast.error('Insufficient funds')
+			} else {
+				toast.error(error.message)
+				console.log(error, destinationAddress)
+			}
+		},
+	})
+
+	// Send ETH to WETH contract
+	const { sendTransaction: wrapEth } = useSendTransaction({
+		request: {
+			to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 			value: (ethToTransfer * 1000000000000000000).toString(),
 		},
 		onSuccess(data) {
@@ -69,11 +90,16 @@ export default function Eth() {
 					<h2 className="section__title">Transactions</h2>
 					<div className="grid grid--2">
 						<Card label="Transfer ETH">
-							<div>
+							<div className="input-group">
 								<input
 									type="number"
 									step={0.01}
 									placeholder="0.75"
+									style={{
+										maxWidth: '5rem',
+										borderRight:
+											'0.125rem solid var(--gray-300)',
+									}}
 									onChange={(e) =>
 										setEthToTransfer(e.target.value)
 									}
@@ -81,14 +107,37 @@ export default function Eth() {
 								<input
 									type="text"
 									placeholder="gregskril.eth"
+									style={{ maxWidth: '10rem' }}
 									onChange={(e) => {
 										setDestinationAddress(e.target.value)
 									}}
 								/>
-								<button
-									type="submit"
-									onClick={() => sendTransaction()}
-								>
+							</div>
+							<button
+								type="submit"
+								style={{
+									width: '15rem',
+									maxWidth: '100%',
+									marginTop: '0.5rem',
+									borderRadius: '0.25rem',
+								}}
+								onClick={() => transferEth()}
+							>
+								Transfer
+							</button>
+						</Card>
+						<Card label="Wrap ETH">
+							<div className="input-group">
+								<input
+									type="number"
+									step={0.01}
+									placeholder="0.75"
+									style={{ maxWidth: '8rem' }}
+									onChange={(e) => {
+										setEthToTransfer(e.target.value)
+									}}
+								/>
+								<button type="submit" onClick={() => wrapEth()}>
 									Transfer
 								</button>
 							</div>
@@ -166,6 +215,7 @@ export default function Eth() {
 					width: fit-content;
 					outline: none;
 					width: fit-content;
+					padding: 0;
 				}
 
 				.converter input[name='ether'] {
