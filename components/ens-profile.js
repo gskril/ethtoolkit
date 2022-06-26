@@ -1,6 +1,11 @@
 import Image from 'next/image'
 
 export default function EnsProfile({ records, setSelectedName }) {
+	const twitter =
+		records.twitter && records.twitter.startsWith('@')
+			? records.twitter.substring(1)
+			: records.twitter
+
 	return (
 		<>
 			<div className="modal">
@@ -39,22 +44,46 @@ export default function EnsProfile({ records, setSelectedName }) {
 								<p>{records.description}</p>
 							</>
 						)}
-						{records.twitter && (
+						{twitter && (
 							<>
 								<label>Twitter:</label>
-								<p>{records.twitter}</p>
+								<p>
+									<a
+										href={`https://twitter.com/${twitter}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										@{twitter}
+									</a>
+								</p>
 							</>
 						)}
 						{records.url && (
 							<>
 								<label>Website:</label>
-								<p>{records.url}</p>
+								<p>
+									<a
+										href={records.url}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{records.url}
+									</a>
+								</p>
 							</>
 						)}
 						{records.github && (
 							<>
 								<label>Github:</label>
-								<p>{records.github}</p>
+								<p>
+									<a
+										href={`https://github.com/${records.github}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{records.github}
+									</a>
+								</p>
 							</>
 						)}
 						{records.telegram && (
@@ -66,7 +95,11 @@ export default function EnsProfile({ records, setSelectedName }) {
 						{records.email && (
 							<>
 								<label>Email:</label>
-								<p>{records.email}</p>
+								<p>
+									<a href={`mailto:${records.email}`}>
+										{records.email}
+									</a>
+								</p>
 							</>
 						)}
 					</div>

@@ -166,6 +166,9 @@ export default function ENS() {
 													setSelectedName(data)
 												}
 											})
+											.catch((err) => {
+												toast.error(err.message)
+											})
 									}}
 								>
 									Check
