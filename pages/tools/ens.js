@@ -100,13 +100,6 @@ export default function ENS() {
 		{ args: [ensNameToSearch?.split('.eth')[0]] }
 	)
 
-	const [commitmentMsg, setCommitmentMsg] = useState(null)
-
-	// Make commit
-	const { write: commit } = useContractWrite(ensRegistrarConfig, 'commit', {
-		args: [commitmentMsg],
-	})
-
 	return (
 		<>
 			<Head>
@@ -197,7 +190,7 @@ export default function ENS() {
 
 				<div className="section">
 					<h2 className="section__title">Write</h2>
-					<div className="grid grid--2">
+					<div className="grid">
 						<Card label="Delegate $ENS">
 							<div className="input-group">
 								<input
@@ -225,52 +218,6 @@ export default function ENS() {
 									}}
 								>
 									Delegate
-								</button>
-							</div>
-						</Card>
-						<Card label="Register .eth name">
-							<div className="input-group">
-								<input
-									type="text"
-									placeholder="gregskril.eth"
-									style={{ maxWidth: '11rem' }}
-									onChange={(e) => {
-										setEnsNameToSearch(e.target.value)
-									}}
-								/>
-								<button
-									onClick={() => {
-										if (!connectedAccount) {
-											return toast.error(
-												'Connect your wallet'
-											)
-										}
-
-										fetch(
-											`/api/commit?name=${
-												ensNameToSearch?.split(
-													'.eth'
-												)[0]
-											}&owner=${
-												connectedAccount?.address
-											}`
-										)
-											.then((res) => res.json())
-											.then((data) => {
-												console.log(data)
-												if (data.error) {
-													return toast.error(
-														data.error
-													)
-												}
-												setCommitmentMsg(
-													data.commitment
-												)
-												commit()
-											})
-									}}
-								>
-									Commit
 								</button>
 							</div>
 						</Card>
