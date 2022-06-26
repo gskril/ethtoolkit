@@ -238,7 +238,7 @@ export default function Eth() {
 				}
 
 				.converter input[name='wei'] {
-					width: 13rem;
+					width: 14rem;
 				}
 
 				.converter label {
