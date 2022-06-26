@@ -4,8 +4,12 @@ import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
-import { useSendTransaction, useContractWrite } from 'wagmi'
-import { BigNumber } from 'ethers'
+import {
+	useAccount,
+	useBalance,
+	useSendTransaction,
+	useContractWrite,
+} from 'wagmi'
 
 export default function Eth() {
 	const gasBest = useFetch('https://gas.best/stats')
@@ -39,6 +43,11 @@ export default function Eth() {
 		},
 	})
 
+	const { data: connectedAccount } = useAccount()
+	const { data: balance } = useBalance({
+		addressOrName: connectedAccount?.address,
+	})
+
 	// Wrap ETH
 	const { write: wrapEth } = useContractWrite(
 		{
@@ -49,16 +58,6 @@ export default function Eth() {
 		{
 			overrides: {
 				value: (ethToTransfer * 1000000000000000000).toString(),
-			},
-		},
-		{
-			onError(error) {
-				if (error.message.includes('insufficient funds')) {
-					toast.error('Insufficient funds')
-				} else {
-					toast.error(error.message)
-				}
-				console.log(error)
 			},
 		}
 	)
@@ -141,8 +140,20 @@ export default function Eth() {
 										setEthToTransfer(e.target.value)
 									}}
 								/>
-								<button type="submit" onClick={() => wrapEth()}>
-									Transfer
+								<button
+									type="submit"
+									onClick={() => {
+										if (!connectedAccount) {
+											toast.error('Connect your wallet')
+											return
+										} else if (balance.formatted < ethToTransfer) {
+											toast.error('Insufficient funds')
+											return
+										}
+										wrapEth()
+									}}
+								>
+									Wrap
 								</button>
 							</div>
 						</Card>

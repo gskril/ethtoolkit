@@ -107,10 +107,10 @@ export default function Optimism() {
 					</div>
 				</div>
 
-        <div className="section">
-          <h2 className="section__title">Read</h2>
-          <div className="grid">
-            <Card label="Airdrop Eligibility">
+				<div className="section">
+					<h2 className="section__title">Read</h2>
+					<div className="grid">
+						<Card label="Airdrop Eligibility">
 							<div className="input-group">
 								<input
 									type="text"
@@ -128,12 +128,12 @@ export default function Optimism() {
 								</button>
 							</div>
 						</Card>
-          </div>
-        </div>
+					</div>
+				</div>
 
 				<div className="section">
 					<h2 className="section__title">Write</h2>
-					<div className="grid grid--2">
+					<div className="grid">
 						<Card label="Bridge from ETH">
 							<div className="input-group">
 								<input
@@ -149,6 +149,10 @@ export default function Optimism() {
 										if (!connectedAccount) {
 											return toast.error(
 												'Connect your wallet'
+											)
+										} else if (!ethToBridge || ethToBridge === 0) {
+											return toast.error(
+												'Enter a non-zero amount'
 											)
 										} else if (balanceETH < ethToBridge) {
 											return toast.error(
