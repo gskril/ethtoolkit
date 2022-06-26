@@ -9,7 +9,6 @@ const { chains, provider } = configureChains(
 	[
 		chain.mainnet,
 		chain.rinkeby,
-		chain.optimism,
 	],
 	[alchemyProvider({ alchemyId: process.env.ALCHEMY_ID }), publicProvider()]
 )
