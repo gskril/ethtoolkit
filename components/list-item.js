@@ -35,11 +35,6 @@ export default function Tool({ name, slug, color }) {
 					outline: none;
 				}
 
-				.link:hover h2,
-				.link:focus-visible h2 {
-					text-decoration: underline;
-				}
-
 				.arrow {
 					opacity: 0;
 					transition: opacity 150ms ease-in-out;
