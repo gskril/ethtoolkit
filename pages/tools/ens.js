@@ -4,7 +4,7 @@ import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
-import { useAccount, useContractWrite } from 'wagmi'
+import { useAccount, useBalance, useContractWrite } from 'wagmi'
 
 export default function ENS() {
 	const ensStats = useFetch(
@@ -48,7 +48,7 @@ export default function ENS() {
 			.then((res) => res.json())
 			.then((data) => {
 				if (data.error) {
-					toast.error(`Error fetching records for ${name}`)
+					toast.error(data.error)
 				} else {
 					const toatsMsg = ''
 					const recordsArray = Object.entries(data).map(
@@ -78,6 +78,11 @@ export default function ENS() {
 	const { data: connectedAccount } = useAccount()
 	const ensTokenAddress = '0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72'
 	const ensContractAbi = ['function delegate(address delegatee)']
+
+	const { data: balance } = useBalance({
+		addressOrName: connectedAccount?.address,
+		token: ensTokenAddress,
+	})
 
 	// Delegate on chain
 	const { isError: delegateError, write: delegateTokens } = useContractWrite(
@@ -185,6 +190,17 @@ export default function ENS() {
 								/>
 								<button
 									onClick={() => {
+										if (!connectedAccount) {
+											return toast.error(
+												'Connect your wallet'
+											)
+										} else if (
+											parseFloat(balance.formatted) < 1
+										) {
+											return toast.error(
+												'You need at least 1 token to delegate'
+											)
+										}
 										delegateTokens()
 									}}
 								>
