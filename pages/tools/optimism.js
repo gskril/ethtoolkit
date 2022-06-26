@@ -38,6 +38,42 @@ export default function Optimism() {
 		}
 	)
 
+	// Check airdrop eligibility
+	const [airdropAddress, setAirdropAddress] = useState('')
+	async function checkAirdrop() {
+		let address
+
+		if (airdropAddress.length !== 42 && !airdropAddress.startsWith('0x')) {
+			address = await fetch(
+				`https://api.ensideas.com/ens/resolve/${airdropAddress}`
+			)
+				.then((res) => res.json())
+				.then((data) => data.address)
+				.catch((err) => null)
+		} else {
+			address = airdropAddress
+		}
+
+		if (!address) return toast.error('Unable to resolve ENS name')
+
+		fetch(`https://mainnet-indexer.optimism.io/v1/airdrops/${address}`)
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.totalAmount > 0) {
+					toast.success(
+						`You are eligible to claim ${parseFloat(
+							data.totalAmount / 1000000000000000000
+						).toFixed(2)} tokens!`
+					)
+				} else {
+					toast.error(`You are not eligible for the first airdrop`)
+				}
+			})
+			.catch(() => {
+				toast.error('Error checking airdrop eligibility')
+			})
+	}
+
 	return (
 		<>
 			<Head>
@@ -71,6 +107,30 @@ export default function Optimism() {
 					</div>
 				</div>
 
+        <div className="section">
+          <h2 className="section__title">Read</h2>
+          <div className="grid">
+            <Card label="Airdrop Eligibility">
+							<div className="input-group">
+								<input
+									type="text"
+									placeholder="gregskril.eth"
+									onChange={(e) => {
+										setAirdropAddress(e.target.value)
+									}}
+								/>
+								<button
+									onClick={() => {
+										checkAirdrop()
+									}}
+								>
+									Check
+								</button>
+							</div>
+						</Card>
+          </div>
+        </div>
+
 				<div className="section">
 					<h2 className="section__title">Write</h2>
 					<div className="grid grid--2">
@@ -102,7 +162,6 @@ export default function Optimism() {
 								</button>
 							</div>
 						</Card>
-						<Card></Card>
 					</div>
 				</div>
 			</main>
