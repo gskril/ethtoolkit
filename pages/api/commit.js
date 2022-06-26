@@ -22,7 +22,10 @@ export default async function commit(req, res) {
 		return
 	}
 
-	const secret = crypto.randomBytes(32)
+	const secret = '0x' + crypto.randomBytes(32).toString('hex')
 	const commitment = await contract.makeCommitment(name, owner, secret)
-	res.status(200).json({ commitment: commitment })
+	res.status(200).json({
+		commitment: commitment,
+		secret: secret.toString('hex'),
+	})
 }
