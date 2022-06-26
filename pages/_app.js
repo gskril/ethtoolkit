@@ -7,11 +7,8 @@ import { publicProvider } from 'wagmi/providers/public'
 
 const { chains, provider } = configureChains(
 	[
-		...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true'
-			? [chain.rinkeby]
-			: []),
 		chain.mainnet,
-		chain.polygon,
+		chain.rinkeby,
 		chain.optimism,
 	],
 	[alchemyProvider({ alchemyId: process.env.ALCHEMY_ID }), publicProvider()]
