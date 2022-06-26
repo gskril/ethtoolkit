@@ -5,6 +5,7 @@ import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
+import EnsProfile from '../../components/ens-profile'
 import {
 	useAccount,
 	useBalance,
@@ -29,43 +30,6 @@ export default function ENS() {
 	const ensTokenPrice = ensToken?.data?.USD
 
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
-
-	async function checkRecords(name) {
-		if (name.length < 5) {
-			toast.error('Please enter a valid name')
-			return
-		}
-
-		fetch(`https://ens-records.vercel.app/${name}`)
-			.then((res) => res.json())
-			.then((data) => {
-				if (data.error) {
-					toast.error(data.error)
-				} else {
-					const toatsMsg = ''
-					const recordsArray = Object.entries(data).map(
-						([key, value]) => ({
-							key,
-							value,
-						})
-					)
-
-					recordsArray.map((record) => {
-						const recordsToIgnore = ['address', 'avatar']
-						if (recordsToIgnore.includes(record.key)) return
-
-						// skip if value is empty
-						if (!record.value) return
-
-						toatsMsg += `${record.key}: ${record.value}\n`
-					})
-
-					toast(toatsMsg, {
-						duration: 6000,
-					})
-				}
-			})
-	}
 
 	const { data: connectedAccount } = useAccount()
 	const ensTokenAbi = require('../../lib/ens-token-abi.json')
@@ -99,6 +63,8 @@ export default function ENS() {
 		'available',
 		{ args: [ensNameToSearch?.split('.eth')[0]] }
 	)
+
+	const [selectedName, setSelectedName] = useState(null)
 
 	return (
 		<>
@@ -178,7 +144,28 @@ export default function ENS() {
 								/>
 								<button
 									onClick={() => {
-										checkRecords(ensNameToSearch)
+										const name = ensNameToSearch
+
+										if (name?.length < 5) {
+											toast.error(
+												'Please enter a valid name'
+											)
+											return
+										}
+
+										toast('Loading...')
+
+										fetch(
+											`https://ens-records.vercel.app/${name}?avatar`
+										)
+											.then((res) => res.json())
+											.then((data) => {
+												if (data.error) {
+													toast.error(data.error)
+												} else {
+													setSelectedName(data)
+												}
+											})
 									}}
 								>
 									Check
@@ -225,6 +212,12 @@ export default function ENS() {
 				</div>
 			</main>
 
+			{selectedName && (
+				<EnsProfile
+					records={selectedName}
+					setSelectedName={setSelectedName}
+				/>
+			)}
 			<Toaster position="bottom-center" reverseOrder={false} />
 		</>
 	)
