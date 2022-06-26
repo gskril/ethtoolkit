@@ -82,6 +82,12 @@ button {
   padding: 0.5rem;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 button {
   background-color: var(--blue-400);
   color: var(--gray-50);

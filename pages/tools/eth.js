@@ -4,7 +4,7 @@ import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
-import { useSendTransaction } from 'wagmi'
+import { useSendTransaction, useContractWrite } from 'wagmi'
 import { BigNumber } from 'ethers'
 
 export default function Eth() {
@@ -39,25 +39,29 @@ export default function Eth() {
 		},
 	})
 
-	// Send ETH to WETH contract
-	const { sendTransaction: wrapEth } = useSendTransaction({
-		request: {
-			to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-			value: (ethToTransfer * 1000000000000000000).toString(),
+	// Wrap ETH
+	const { write: wrapEth } = useContractWrite(
+		{
+			addressOrName: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			contractInterface: ['function deposit() public payable'],
 		},
-		onSuccess(data) {
-			console.log('Success', data)
-			toast.success('Transaction submitted successfully!')
+		'deposit',
+		{
+			overrides: {
+				value: (ethToTransfer * 1000000000000000000).toString(),
+			},
 		},
-		onError(error) {
-			if (error.message.includes('insufficient funds')) {
-				toast.error('Insufficient funds')
-			} else {
-				toast.error(error.message)
-				console.log(error, destinationAddress)
-			}
-		},
-	})
+		{
+			onError(error) {
+				if (error.message.includes('insufficient funds')) {
+					toast.error('Insufficient funds')
+				} else {
+					toast.error(error.message)
+				}
+				console.log(error)
+			},
+		}
+	)
 
 	return (
 		<>
@@ -219,7 +223,7 @@ export default function Eth() {
 				}
 
 				.converter input[name='ether'] {
-					width: 4rem;
+					width: 3rem;
 				}
 
 				.converter input[name='wei'] {
