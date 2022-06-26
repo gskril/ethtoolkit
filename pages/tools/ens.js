@@ -1,10 +1,16 @@
 import Head from 'next/head'
 import { useState } from 'react'
+import { randomBytes } from 'crypto'
 import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
-import { useAccount, useBalance, useContractWrite } from 'wagmi'
+import {
+	useAccount,
+	useBalance,
+	useContractRead,
+	useContractWrite,
+} from 'wagmi'
 
 export default function ENS() {
 	const ensStats = useFetch(
@@ -23,26 +29,6 @@ export default function ENS() {
 	const ensTokenPrice = ensToken?.data?.USD
 
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
-
-	async function checkName(name) {
-		if (name.length < 5) {
-			toast.error('Please enter a valid name')
-			return
-		}
-
-		fetch(`https://api.ensideas.com/ens/resolve/${name}`)
-			.then((res) => res.json())
-			.then((data) => {
-				if (data.address) {
-					toast.error(`${name} is not available`)
-				} else {
-					toast.success(`${name} is available`)
-				}
-			})
-			.catch((err) => {
-				toast.error('Error checking name availability')
-			})
-	}
 
 	async function checkRecords(name) {
 		if (name.length < 5) {
@@ -82,8 +68,18 @@ export default function ENS() {
 	}
 
 	const { data: connectedAccount } = useAccount()
-	const ensTokenAddress = '0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72'
-	const ensContractAbi = ['function delegate(address delegatee)']
+	const ensTokenAbi = require('../../lib/ens-token-abi.json')
+	const ensRegistryAbi = require('../../lib/ens-registry-abi.json')
+	const ensTokenAddress = '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72'
+	const ensRegistrarAddress = '0x283af0b28c62c092c9727f1ee09c02ca627eb7f5'
+	const ensRegistrarConfig = {
+		addressOrName: ensRegistrarAddress,
+		contractInterface: ensRegistryAbi,
+	}
+	const ensTokenConfig = {
+		addressOrName: ensTokenAddress,
+		contractInterface: ensTokenAbi,
+	}
 
 	const { data: balance } = useBalance({
 		addressOrName: connectedAccount?.address,
@@ -91,26 +87,25 @@ export default function ENS() {
 	})
 
 	// Delegate on chain
-	const { isError: delegateError, write: delegateTokens } = useContractWrite(
-		{
-			addressOrName: ensTokenAddress,
-			contractInterface: ensContractAbi,
-		},
+	const { write: delegateTokens } = useContractWrite(
+		ensTokenConfig,
 		'delegate',
-		{ args: [ensNameToSearch] },
-		{
-			onError(error) {
-				console.log(error)
-				toast.error('Error delegating tokens')
-			},
-		},
-		{
-			onSuccess(data) {
-				console.log(data)
-				toast.success('Tokens delegated')
-			},
-		}
+		{ args: [ensNameToSearch] }
 	)
+
+	// Check availability
+	const { data: checkAvailability } = useContractRead(
+		ensRegistrarConfig,
+		'available',
+		{ args: [ensNameToSearch?.split('.eth')[0]] }
+	)
+
+	const [commitmentMsg, setCommitmentMsg] = useState(null)
+
+	// Make commit
+	const { write: commit } = useContractWrite(ensRegistrarConfig, 'commit', {
+		args: [commitmentMsg],
+	})
 
 	return (
 		<>
@@ -162,7 +157,17 @@ export default function ENS() {
 								/>
 								<button
 									onClick={() => {
-										checkName(ensNameToSearch)
+										const isNameAvailable =
+											checkAvailability
+										if (isNameAvailable) {
+											toast.success(
+												`${ensNameToSearch} is available`
+											)
+										} else {
+											toast.error(
+												`${ensNameToSearch} is not available`
+											)
+										}
 									}}
 								>
 									Check
@@ -210,7 +215,7 @@ export default function ENS() {
 												'Connect your wallet'
 											)
 										} else if (
-											parseFloat(balance.formatted) < 1
+											parseFloat(balance?.formatted) < 1
 										) {
 											return toast.error(
 												'You need at least 1 token to delegate'
@@ -220,6 +225,52 @@ export default function ENS() {
 									}}
 								>
 									Delegate
+								</button>
+							</div>
+						</Card>
+						<Card label="Register .eth name">
+							<div className="input-group">
+								<input
+									type="text"
+									placeholder="gregskril.eth"
+									style={{ maxWidth: '11rem' }}
+									onChange={(e) => {
+										setEnsNameToSearch(e.target.value)
+									}}
+								/>
+								<button
+									onClick={() => {
+										if (!connectedAccount) {
+											return toast.error(
+												'Connect your wallet'
+											)
+										}
+
+										fetch(
+											`/api/commit?name=${
+												ensNameToSearch?.split(
+													'.eth'
+												)[0]
+											}&owner=${
+												connectedAccount?.address
+											}`
+										)
+											.then((res) => res.json())
+											.then((data) => {
+												console.log(data)
+												if (data.error) {
+													return toast.error(
+														data.error
+													)
+												}
+												setCommitmentMsg(
+													data.commitment
+												)
+												commit()
+											})
+									}}
+								>
+									Commit
 								</button>
 							</div>
 						</Card>
