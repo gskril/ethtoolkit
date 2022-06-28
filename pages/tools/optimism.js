@@ -43,6 +43,11 @@ export default function Optimism() {
 	async function checkAirdrop() {
 		let address
 
+		if (airdropAddress.length === 0) {
+			return toast.error('Please enter an address')
+		}
+
+		const loadingToast = toast.loading('Checking eligibility...')
 		if (airdropAddress.length !== 42 && !airdropAddress.startsWith('0x')) {
 			address = await fetch(
 				`https://api.ensideas.com/ens/resolve/${airdropAddress}`
@@ -54,7 +59,10 @@ export default function Optimism() {
 			address = airdropAddress
 		}
 
-		if (!address) return toast.error('Unable to resolve ENS name')
+		if (!address) {
+			toast.dismiss(loadingToast)
+			return toast.error('Unable to resolve ENS name')
+		}
 
 		fetch(`https://mainnet-indexer.optimism.io/v1/airdrops/${address}`)
 			.then((res) => res.json())
@@ -72,6 +80,8 @@ export default function Optimism() {
 			.catch(() => {
 				toast.error('Error checking airdrop eligibility')
 			})
+
+		toast.dismiss(loadingToast)
 	}
 
 	return (
@@ -96,13 +106,13 @@ export default function Optimism() {
 							isLoading={opToken.isLoading}
 							label="Gas Savings vs L1"
 							type="number"
-							number="81x"
+							number="80x"
 						/>
 						<Card
 							isLoading={opToken.isLoading}
 							label="Transactions / Day"
 							type="number"
-							number="133,106"
+							number="136,938"
 						/>
 					</div>
 				</div>
@@ -150,7 +160,10 @@ export default function Optimism() {
 											return toast.error(
 												'Connect your wallet'
 											)
-										} else if (!ethToBridge || ethToBridge === 0) {
+										} else if (
+											!ethToBridge ||
+											ethToBridge === 0
+										) {
 											return toast.error(
 												'Enter a non-zero amount'
 											)
