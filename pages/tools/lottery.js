@@ -3,10 +3,10 @@ import { useState } from 'react'
 import Hero from '../../components/tool-hero'
 import toast, { Toaster } from 'react-hot-toast'
 import Card from '../../components/card'
-import ethers from 'ethers'
 import {
 	useAccount,
 	useBalance,
+	useNetwork,
 	useContractWrite,
 	useContractRead,
 } from 'wagmi'
@@ -21,6 +21,7 @@ export default function Lottery() {
 	const { data: balance } = useBalance({
 		addressOrName: connectedAccount?.address,
 	})
+	const { activeChain } = useNetwork()
 
 	const { data: ticketPriceData, isLoading: ticketPriceLoading } =
 		useContractRead(contractConfig, 'ticketPrice', {
@@ -47,14 +48,10 @@ export default function Lottery() {
 		'buyTicket',
 		{
 			args: [parseFloat(ticketsToBuy)],
-		},
-		{
 			overrides: {
-				value: ticketsToBuy * ticketPriceData * 1000000000000000000,
+				from: connectedAccount?.address,
+				value: Number(ticketPriceData * ticketsToBuy).toFixed(),
 			},
-		},
-		{
-			chainId: 4,
 		}
 	)
 
@@ -65,7 +62,7 @@ export default function Lottery() {
 			</Head>
 
 			<Hero
-				name="Lottery"
+				name="Rinkeby ETH Lottery"
 				description="Participate in an on-chain lottery powered by Chainlink VRF."
 			/>
 
@@ -116,6 +113,11 @@ export default function Lottery() {
 									onClick={() => {
 										if (!connectedAccount) {
 											toast.error('Connect your wallet')
+											return
+										} else if (activeChain.id !== 4) {
+											toast.error(
+												'This game is only available on Rinkeby'
+											)
 											return
 										} else if (
 											balance.formatted <
