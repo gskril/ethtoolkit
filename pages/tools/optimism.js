@@ -88,6 +88,7 @@ export default function Optimism() {
 		<>
 			<Head>
 				<title>Optimism</title>
+				<meta property="og:title" content="Optimism" />
 			</Head>
 
 			<Hero name="Optimism" />

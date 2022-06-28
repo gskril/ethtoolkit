@@ -76,6 +76,7 @@ export default function Eth() {
 		<>
 			<Head>
 				<title>Ethereum Tools</title>
+				<meta property="og:title" content="Ethereum Tools" />
 			</Head>
 
 			<Hero name="Ethereum" />

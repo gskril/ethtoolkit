@@ -59,6 +59,7 @@ export default function Lottery() {
 		<>
 			<Head>
 				<title>Degen Lottery</title>
+				<meta property="og:title" content="Degen Lottery" />
 			</Head>
 
 			<Hero

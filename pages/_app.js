@@ -59,6 +59,7 @@ export default function App({ Component, pageProps }) {
 						property="twitter:card"
 						content="summary_large_image"
 					/>
+					<meta property="twitter:creator" content="@gregskril" />
 				</Head>
 				<Component {...pageProps} />
 			</RainbowKitProvider>

@@ -70,6 +70,7 @@ export default function ENS() {
 		<>
 			<Head>
 				<title>Ethereum Name Service</title>
+				<meta property="og:title" content="Ethereum Name Service" />
 			</Head>
 
 			<Hero

@@ -30,6 +30,7 @@ export default function Home() {
 		<div className="container">
 			<Head>
 				<title>Simplify Your Ethereum Toolkit</title>
+				<meta property="og:title" content="Simplify Your Ethereum Toolkit" />
 			</Head>
 
 			<header className="header">
