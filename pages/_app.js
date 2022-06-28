@@ -57,7 +57,7 @@ export default function App({ Component, pageProps }) {
 					/>
 					<meta
 						property="twitter:card"
-						content="summary_large_card"
+						content="summary_large_image"
 					/>
 				</Head>
 				<Component {...pageProps} />
