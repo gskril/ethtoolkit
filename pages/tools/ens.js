@@ -144,31 +144,36 @@ export default function ENS() {
 								/>
 								<button
 									onClick={() => {
-										const name = ensNameToSearch
+										let name = ensNameToSearch
 
-										if (name?.length < 5) {
-											toast.error(
+										if (name?.length < 3) {
+											return toast.error(
 												'Please enter a valid name'
 											)
-											return
+										} else if (!name?.endsWith('.eth')) {
+											name += '.eth'
 										}
 
-										toast('Loading...')
-
-										fetch(
+										const ensRecords = fetch(
 											`https://ens-records.vercel.app/${name}?avatar`
 										)
 											.then((res) => res.json())
 											.then((data) => {
 												if (data.error) {
-													toast.error(data.error)
+													throw new Error(data.error)
 												} else {
 													setSelectedName(data)
 												}
 											})
 											.catch((err) => {
-												toast.error(err.message)
+												throw new Error(err)
 											})
+
+										toast.promise(ensRecords, {
+											loading: 'Getting records...',
+											success: 'Records loaded!',
+											error: 'Error fetching data',
+										})
 									}}
 								>
 									Check

@@ -6,6 +6,19 @@ export default function EnsProfile({ records, setSelectedName }) {
 			? records.twitter.substring(1)
 			: records.twitter
 
+	const telegram =
+		records.telegram && records.telegram.startsWith('@')
+			? records.telegram.substring(1)
+			: records.telegram
+
+	const github = records.github
+		? records.github.startsWith('@')
+			? records.github.substring(1)
+			: records.github.startsWith('https://github.com')
+			? records.github.split('github.com/')[1]
+			: records.github
+		: null
+
 	return (
 		<>
 			<div className="modal">
@@ -58,6 +71,48 @@ export default function EnsProfile({ records, setSelectedName }) {
 								</p>
 							</>
 						)}
+						{records.telegram && (
+							<>
+								<label>Telegram:</label>
+								<p>
+									<a
+										href={`https://t.me/${telegram}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										@{telegram}
+									</a>
+								</p>
+							</>
+						)}
+						{records.github && (
+							<>
+								<label>Github:</label>
+								<p>
+									<a
+										href={`https://github.com/${github}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										@{github}
+									</a>
+								</p>
+							</>
+						)}
+						{records.email && (
+							<>
+								<label>Email:</label>
+								<p>
+									<a
+										href={`mailto:${records.email}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{records.email}
+									</a>
+								</p>
+							</>
+						)}
 						{records.url && (
 							<>
 								<label>Website:</label>
@@ -68,36 +123,6 @@ export default function EnsProfile({ records, setSelectedName }) {
 										rel="noreferrer"
 									>
 										{records.url}
-									</a>
-								</p>
-							</>
-						)}
-						{records.github && (
-							<>
-								<label>Github:</label>
-								<p>
-									<a
-										href={`https://github.com/${records.github}`}
-										target="_blank"
-										rel="noreferrer"
-									>
-										{records.github}
-									</a>
-								</p>
-							</>
-						)}
-						{records.telegram && (
-							<>
-								<label>Telegram:</label>
-								<p>{records.telegram}</p>
-							</>
-						)}
-						{records.email && (
-							<>
-								<label>Email:</label>
-								<p>
-									<a href={`mailto:${records.email}`}>
-										{records.email}
 									</a>
 								</p>
 							</>
