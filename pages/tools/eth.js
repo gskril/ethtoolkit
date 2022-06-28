@@ -7,6 +7,7 @@ import Card from '../../components/card'
 import {
 	useAccount,
 	useBalance,
+	useNetwork,
 	useSendTransaction,
 	useContractWrite,
 } from 'wagmi'
@@ -22,6 +23,7 @@ export default function Eth() {
 	const [weiConversion, setWeiConversion] = useState('')
 	const [ethToTransfer, setEthToTransfer] = useState(0)
 	const [destinationAddress, setDestinationAddress] = useState(null)
+	const { activeChain } = useNetwork()
 
 	// Transfer ETH
 	const { sendTransaction: transferEth } = useSendTransaction({
@@ -36,6 +38,14 @@ export default function Eth() {
 		onError(error) {
 			if (error.message.includes('insufficient funds')) {
 				toast.error('Insufficient funds')
+			} else if (
+				error.message.includes('provided ENS name resolves to null')
+			) {
+				toast.error(
+					`That address does not exist${
+						activeChain && ` on ${activeChain.name}`
+					}`
+				)
 			} else {
 				toast.error(error.message)
 				console.log(error, destinationAddress)
@@ -146,7 +156,9 @@ export default function Eth() {
 										if (!connectedAccount) {
 											toast.error('Connect your wallet')
 											return
-										} else if (balance.formatted < ethToTransfer) {
+										} else if (
+											balance.formatted < ethToTransfer
+										) {
 											toast.error('Insufficient funds')
 											return
 										}
