@@ -18,7 +18,7 @@ export default async function commit(req, res) {
 
 	const isAvailable = await contract.available(name)
 	if (!isAvailable) {
-		res.status(400).send({ error: 'Name is not available' })
+		res.status(200).json({ error: 'Name is not available' })
 		return
 	}
 

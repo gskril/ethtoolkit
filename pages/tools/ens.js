@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import { useState } from 'react'
-import { randomBytes } from 'crypto'
 import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
@@ -11,6 +10,7 @@ import {
 	useBalance,
 	useContractRead,
 	useContractWrite,
+	useWaitForTransaction,
 } from 'wagmi'
 
 export default function ENS() {
@@ -30,6 +30,7 @@ export default function ENS() {
 	const ensTokenPrice = ensToken?.data?.USD
 
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
+	const [selectedName, setSelectedName] = useState(null)
 
 	const { address: connectedAccount } = useAccount()
 	const ensTokenAbi = require('../../lib/ens-token-abi.json')
@@ -73,8 +74,54 @@ export default function ENS() {
 		chain: 1,
 	})
 
-	const [selectedName, setSelectedName] = useState(null)
+	// Make commit
+	const [secret, setSecret] = useState(null)
+	const [commitment, setCommitment] = useState(null)
+	const [nameToRegister, setNameToRegister] = useState(null)
+	const [readyToRegister, setReadyToRegister] = useState(false)
 
+	const { data: commitNameTxData, write: commitName } = useContractWrite({
+		...ensRegistrarConfig,
+		functionName: 'commit',
+		args: commitment,
+		onError(err) {
+			toast.error(err.message)
+		},
+		onSuccess(tx) {
+			toast.success('Commitment sent')
+		},
+	})
+
+	const { data: commitTxSettled, isLoading: commitTxIsPending } =
+		useWaitForTransaction({
+			hash: commitNameTxData?.hash,
+			onSuccess(data) {
+				console.log(data)
+				console.log({
+					nameToRegister: nameToRegister,
+					owner: connectedAccount,
+					secret: secret,
+				})
+				setTimeout(() => {
+					setReadyToRegister(true)
+				}, 60 * 1000)
+			},
+		})
+
+	const { write: registerName } = useContractWrite({
+		...ensRegistrarConfig,
+		functionName: 'register',
+		args: [nameToRegister, connectedAccount, '31556952', secret],
+		overrides: {
+			value: '10000000000000000',
+		},
+		onError(err) {
+			toast.error(err.message)
+		},
+		onSuccess(tx) {
+			toast.success('Name registered')
+		},
+	})
 	return (
 		<>
 			<Head>
@@ -195,7 +242,93 @@ export default function ENS() {
 
 				<div className="section">
 					<h2 className="section__title">Write</h2>
-					<div className="grid">
+					<div className="grid grid--2">
+						<Card label="Register .eth name">
+							{commitTxSettled && readyToRegister ? (
+								// Register name
+								<div className="input-group">
+									<button onClick={() => registerName()}>
+										Register name
+									</button>
+								</div>
+							) : commitTxSettled ? (
+								// Waiting 1 minute before we can register
+								<p>
+									Waiting 1 minute before we can register the
+									name. Stay on this page.
+								</p>
+							) : commitTxIsPending ? (
+								// Submitted to the blockchain
+								<div>
+									<p>
+										<a
+											href={`https://rinkeby.etherscan.io/tx/${commitNameTxData?.hash}`}
+											target="_blank"
+											rel="noreferrer"
+										>
+											View on Etherscan
+										</a>
+									</p>
+								</div>
+							) : (
+								// Starting point - make commit tx
+								<div className="input-group">
+									<input
+										type="text"
+										placeholder="gregskril.eth"
+										style={{ maxWidth: '11rem' }}
+										onChange={(e) => {
+											setEnsNameToSearch(e.target.value)
+										}}
+									/>
+									<button
+										onClick={() => {
+											const name =
+												ensNameToSearch?.endsWith(
+													'.eth'
+												)
+													? ensNameToSearch.split(
+															'.eth'
+													  )[0]
+													: ensNameToSearch
+											if (!name) {
+												return toast.error(
+													'Please enter a valid name'
+												)
+											}
+
+											fetch(
+												`/api/commit?name=${name}&owner=${connectedAccount}`
+											)
+												.then((res) => res.json())
+												.then((data) => {
+													if (data.error) {
+														return toast.error(
+															data.error
+														)
+													} else {
+														setSecret(data.secret)
+														setNameToRegister(name)
+														setCommitment(
+															data.commitment
+														)
+														toast.success(
+															'Got commitment info'
+														)
+													}
+												})
+												.then(() => commitName())
+												.catch((err) => {
+													toast.error('Unknown error')
+													console.log(err)
+												})
+										}}
+									>
+										Begin
+									</button>
+								</div>
+							)}
+						</Card>
 						<Card label="Delegate $ENS">
 							<div className="input-group">
 								<input
