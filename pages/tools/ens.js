@@ -285,7 +285,7 @@ export default function ENS() {
 											if (name?.length < 3) return
 
 											fetch(
-												`/api/commit?name=${name}&owner=${connectedAccount}`
+												`/api/ens-commit?name=${name}&owner=${connectedAccount}`
 											)
 												.then((res) => res.json())
 												.then((data) => {
@@ -298,7 +298,7 @@ export default function ENS() {
 										}}
 									/>
 									<button
-										onClick={() => {
+										onClick={(e) => {
 											if (
 												!nameToRegister ||
 												nameToRegister?.length < 3
@@ -314,6 +314,8 @@ export default function ENS() {
 												secret: secret,
 											})
 
+											// set button as disabled
+											e.target.disabled = true
 											commitName()
 										}}
 									>
