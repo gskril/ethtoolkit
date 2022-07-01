@@ -4,11 +4,9 @@ import Hero from '../../components/tool-hero'
 import toast, { Toaster } from 'react-hot-toast'
 import Card from '../../components/card'
 import {
-	useAccount,
-	useBalance,
 	useNetwork,
 	useContractWrite,
-	useContractRead,
+	useContractReads,
 } from 'wagmi'
 
 const contractConfig = {
@@ -17,43 +15,77 @@ const contractConfig = {
 }
 
 export default function Lottery() {
-	const { data: connectedAccount } = useAccount()
-	const { data: balance } = useBalance({
-		addressOrName: connectedAccount?.address,
+	const { chain: activeChain } = useNetwork()
+	const [message, setMessage] = useState(null)
+	const [ticketPrice, setTicketPrice] = useState(0)
+	const [numberOfTickets, setNumberOfTickets] = useState(0)
+	const [numberOfTicketsSold, setNumberOfTicketsSold] = useState(0)
+	const [readContractInitialLoading, setReadContractInitialLoading] =
+		useState(true)
+
+	// Read current game stats from the contract
+	useContractReads({
+		contracts: [
+			{
+				...contractConfig,
+				functionName: 'ticketPrice',
+				chainId: 4,
+			},
+			{
+				...contractConfig,
+				functionName: 'numberOfTickets',
+				chainId: 4,
+			},
+			{
+				...contractConfig,
+				functionName: 'numberOfTicketsSold',
+				chainId: 4,
+			},
+		],
+		watch: true,
+		onSuccess(data) {
+			setTicketPrice(Number(data[0]))
+			setNumberOfTickets(Number(data[1]))
+			setNumberOfTicketsSold(Number(data[2]))
+			setReadContractInitialLoading(false)
+		},
 	})
-	const { activeChain } = useNetwork()
-
-	const { data: ticketPriceData, isLoading: ticketPriceLoading } =
-		useContractRead(contractConfig, 'ticketPrice', {
-			chainId: 4,
-		})
-
-	const { data: ticketsData, isLoading: ticketsLoading } = useContractRead(
-		contractConfig,
-		'numberOfTickets',
-		{
-			chainId: 4,
-		}
-	)
-
-	const { data: ticketsSoldData, isLoading: ticketsSoldLoading } =
-		useContractRead(contractConfig, 'numberOfTicketsSold', {
-			chainId: 4,
-		})
 
 	const [ticketsToBuy, setTicketsToBuy] = useState(0)
 
-	const { write: buyTickets } = useContractWrite(
-		contractConfig,
-		'buyTicket',
-		{
-			args: [parseFloat(ticketsToBuy)],
-			overrides: {
-				from: connectedAccount?.address,
-				value: Number(ticketPriceData * ticketsToBuy).toFixed(),
-			},
-		}
-	)
+	const { write: buyTickets } = useContractWrite({
+		...contractConfig,
+		functionName: 'buyTicket',
+		args: [parseFloat(ticketsToBuy)],
+		chainId: 4,
+		overrides: {
+			value: Number(ticketPrice * ticketsToBuy).toFixed(),
+		},
+		onError(error) {
+			if (
+				error.message.includes(
+					'insufficient funds for intrinsic transaction cost'
+				)
+			) {
+				toast.error('Insufficient funds')
+			} else {
+				toast.error(error.message)
+			}
+		},
+		onSuccess(data) {
+			console.log(data)
+			toast.success("You're transaction has been submitted")
+			setMessage(
+				<a
+					href={`https://rinkeby.etherscan.io/tx/${data.hash}`}
+					target="_blank"
+					rel="noreferrer"
+				>
+					View on Etherscan
+				</a>
+			)
+		},
+	})
 
 	return (
 		<>
@@ -73,25 +105,24 @@ export default function Lottery() {
 					<div className="grid grid--3">
 						<Card
 							label="Ticket Price"
-							isLoading={ticketPriceLoading}
+							isLoading={readContractInitialLoading}
 							type="number"
 							number={
-								(
-									ticketPriceData / 1000000000000000000
-								).toString() + ' ETH'
+								(ticketPrice / 1000000000000000000).toString() +
+								' ETH'
 							}
 						/>
 						<Card
 							label="Total Tickets"
-							isLoading={ticketsLoading}
+							isLoading={readContractInitialLoading}
 							type="number"
-							number={ticketsData?.toString()}
+							number={numberOfTickets?.toString()}
 						/>
 						<Card
 							label="Tickets Sold"
-							isLoading={ticketsSoldLoading}
+							isLoading={readContractInitialLoading}
 							type="number"
-							number={ticketsSoldData?.toString()}
+							number={numberOfTicketsSold?.toString()}
 						/>
 					</div>
 				</div>
@@ -112,22 +143,15 @@ export default function Lottery() {
 								<button
 									type="submit"
 									onClick={() => {
-										if (!connectedAccount) {
-											toast.error('Connect your wallet')
+										if (!ticketsToBuy > 0) {
+											toast.error(
+												'Enter a number of tickets to buy'
+											)
 											return
 										} else if (activeChain.id !== 4) {
 											toast.error(
 												'This game is only available on Rinkeby'
 											)
-											return
-										} else if (
-											balance.formatted <
-											ticketsToBuy *
-												(ticketPriceData /
-													1000000000000000000)
-										) {
-											toast.error('Insufficient funds')
-											return
 										}
 										buyTickets()
 									}}
@@ -138,6 +162,7 @@ export default function Lottery() {
 						</Card>
 					</div>
 				</div>
+				{message && <p className="text-center">{message}</p>}
 			</main>
 
 			<Toaster position="bottom-center" reverseOrder={false} />

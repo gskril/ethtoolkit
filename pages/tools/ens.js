@@ -31,7 +31,7 @@ export default function ENS() {
 
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
 
-	const { data: connectedAccount } = useAccount()
+	const { address: connectedAccount } = useAccount()
 	const ensTokenAbi = require('../../lib/ens-token-abi.json')
 	const ensRegistryAbi = require('../../lib/ens-registry-abi.json')
 	const ensTokenAddress = '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72'
@@ -46,23 +46,32 @@ export default function ENS() {
 	}
 
 	const { data: balance } = useBalance({
-		addressOrName: connectedAccount?.address,
+		addressOrName: connectedAccount || null,
 		token: ensTokenAddress,
 	})
 
 	// Delegate on chain
-	const { write: delegateTokens } = useContractWrite(
-		ensTokenConfig,
-		'delegate',
-		{ args: [ensNameToSearch] }
-	)
+	const { write: delegateTokens } = useContractWrite({
+		...ensTokenConfig,
+		functionName: 'delegate',
+		args: ensNameToSearch,
+		chainId: 1,
+		onError(error) {
+			if (error.message.includes('addr is not configured for ENS')) {
+				toast.error('That name does not exist')
+			} else {
+				toast.error(error.message)
+			}
+		},
+	})
 
 	// Check availability
-	const { data: checkAvailability } = useContractRead(
-		ensRegistrarConfig,
-		'available',
-		{ args: [ensNameToSearch?.split('.eth')[0]] }
-	)
+	const { data: checkAvailability } = useContractRead({
+		...ensRegistrarConfig,
+		functionName: 'available',
+		args: ensNameToSearch?.split('.eth')[0],
+		chain: 1,
+	})
 
 	const [selectedName, setSelectedName] = useState(null)
 
@@ -199,11 +208,7 @@ export default function ENS() {
 								/>
 								<button
 									onClick={() => {
-										if (!connectedAccount) {
-											return toast.error(
-												'Connect your wallet'
-											)
-										} else if (
+										if (
 											parseFloat(balance?.formatted) < 1
 										) {
 											return toast.error(

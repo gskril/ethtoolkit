@@ -23,7 +23,7 @@ export default function Eth() {
 	const [weiConversion, setWeiConversion] = useState('')
 	const [ethToTransfer, setEthToTransfer] = useState(0)
 	const [destinationAddress, setDestinationAddress] = useState(null)
-	const { activeChain } = useNetwork()
+	const { chain: activeChain } = useNetwork()
 
 	// Transfer ETH
 	const { sendTransaction: transferEth } = useSendTransaction({
@@ -53,24 +53,21 @@ export default function Eth() {
 		},
 	})
 
-	const { data: connectedAccount } = useAccount()
+	const { address: connectedAccount } = useAccount()
 	const { data: balance } = useBalance({
-		addressOrName: connectedAccount?.address,
+		addressOrName: connectedAccount || null,
 	})
 
 	// Wrap ETH
-	const { write: wrapEth } = useContractWrite(
-		{
-			addressOrName: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-			contractInterface: ['function deposit() public payable'],
+	const { write: wrapEth } = useContractWrite({
+		addressOrName: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+		contractInterface: ['function deposit() public payable'],
+		functionName: 'deposit',
+		chainId: 1,
+		overrides: {
+			value: (ethToTransfer * 1000000000000000000).toString(),
 		},
-		'deposit',
-		{
-			overrides: {
-				value: (ethToTransfer * 1000000000000000000).toString(),
-			},
-		}
-	)
+	})
 
 	return (
 		<>
@@ -157,6 +154,10 @@ export default function Eth() {
 										if (!connectedAccount) {
 											toast.error('Connect your wallet')
 											return
+										} else if (activeChain.id !== 1) {
+											toast.error(
+												'Switch to mainnet to wrap ETH'
+											)
 										} else if (
 											balance.formatted < ethToTransfer
 										) {

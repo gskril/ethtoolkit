@@ -4,7 +4,7 @@ import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
 import Card from '../../components/card'
-import { useAccount, useBalance, useContractWrite } from 'wagmi'
+import { useContractWrite } from 'wagmi'
 
 export default function Optimism() {
 	// Token price
@@ -13,38 +13,39 @@ export default function Optimism() {
 	)
 	const opTokenPrice = opToken?.data?.USD
 
-	// Check account balance
-	const { data: connectedAccount } = useAccount()
-	const { data: balance } = useBalance({
-		addressOrName: connectedAccount?.address,
-	})
-	const balanceETH = balance?.formatted
-
 	// Write to bridge contract
 	const [ethToBridge, setEthToBridge] = useState(0)
-	const { write: bridge } = useContractWrite(
-		{
-			addressOrName: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
-			contractInterface: [
-				'function depositETH(uint32 _l2Gas, bytes calldata _data) external payable',
-			],
+	const { write: bridge } = useContractWrite({
+		addressOrName: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
+		contractInterface: [
+			'function depositETH(uint32 _l2Gas, bytes calldata _data) external payable',
+		],
+		functionName: 'depositETH',
+		chainId: 1,
+		args: [1300000, []],
+		overrides: {
+			value: (ethToBridge * 1000000000000000000).toString(),
 		},
-		'depositETH',
-		{ args: [1300000, []] },
-		{
-			overrides: {
-				value: (ethToBridge * 1000000000000000000).toString(),
-			},
-		}
-	)
+		onError(err) {
+			if (
+				err.message.includes(
+					'insufficient funds for intrinsic transaction cost'
+				)
+			) {
+				toast.error('Insufficient funds')
+			} else {
+				toast.error(err.message)
+			}
+		},
+	})
 
 	// Check airdrop eligibility
 	const [airdropAddress, setAirdropAddress] = useState('')
 	async function checkAirdrop() {
 		let address
 
-		if (airdropAddress.length === 0) {
-			return toast.error('Please enter an address')
+		if (airdropAddress.length < 5) {
+			return toast.error('Please enter a name or address')
 		}
 
 		const loadingToast = toast.loading('Checking eligibility...')
@@ -54,14 +55,18 @@ export default function Optimism() {
 			)
 				.then((res) => res.json())
 				.then((data) => data.address)
-				.catch((err) => null)
+				.catch(() => null)
 		} else {
 			address = airdropAddress
 		}
 
 		if (!address) {
 			toast.dismiss(loadingToast)
-			return toast.error('Unable to resolve ENS name')
+			return toast.error(
+				`Unable to resolve ${
+					airdropAddress.length < 10 ? `'${airdropAddress}'` : 'name'
+				}`
+			)
 		}
 
 		fetch(`https://mainnet-indexer.optimism.io/v1/airdrops/${address}`)
@@ -157,20 +162,9 @@ export default function Optimism() {
 								/>
 								<button
 									onClick={() => {
-										if (!connectedAccount) {
-											return toast.error(
-												'Connect your wallet'
-											)
-										} else if (
-											!ethToBridge ||
-											ethToBridge === 0
-										) {
+										if (!ethToBridge || ethToBridge === 0) {
 											return toast.error(
 												'Enter a non-zero amount'
-											)
-										} else if (balanceETH < ethToBridge) {
-											return toast.error(
-												"You don't have enough ETH to bridge"
 											)
 										}
 										bridge()
