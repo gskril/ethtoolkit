@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
 import Hero from '../../components/tool-hero'
@@ -12,6 +12,7 @@ import {
 	useContractWrite,
 	useWaitForTransaction,
 } from 'wagmi'
+import crypto from 'crypto'
 
 export default function ENS() {
 	const ensStats = useFetch(
@@ -47,8 +48,9 @@ export default function ENS() {
 	}
 
 	const { data: balance } = useBalance({
-		addressOrName: connectedAccount || null,
+		addressOrName: connectedAccount && connectedAccount,
 		token: ensTokenAddress,
+		chainId: 1,
 	})
 
 	// Delegate on chain
@@ -70,8 +72,7 @@ export default function ENS() {
 	const { data: checkAvailability } = useContractRead({
 		...ensRegistrarConfig,
 		functionName: 'available',
-		args: ensNameToSearch?.split('.eth')[0],
-		chain: 1,
+		args: ensNameToSearch ? ensNameToSearch.split('.eth')[0] : ' ',
 	})
 
 	// Make commit
@@ -80,17 +81,42 @@ export default function ENS() {
 	const [nameToRegister, setNameToRegister] = useState(null)
 	const [readyToRegister, setReadyToRegister] = useState(false)
 
+	const { data: makeCommitmentData } = useContractRead({
+		...ensRegistrarConfig,
+		functionName: secret && 'makeCommitment',
+		args: [nameToRegister, connectedAccount, secret],
+		onSuccess(data) {
+			setCommitment(data)
+		},
+	})
+
 	const { data: commitNameTxData, write: commitName } = useContractWrite({
 		...ensRegistrarConfig,
 		functionName: 'commit',
-		args: commitment,
+		args: makeCommitmentData,
 		onError(err) {
 			toast.error(err.message)
+			console.log({
+				name: nameToRegister,
+				owner: connectedAccount,
+				secret: secret,
+			})
 		},
 		onSuccess(tx) {
 			toast.success('Commitment sent')
 		},
+		onError(err) {
+			setSecret(null)
+			setCommitment(null)
+		},
 	})
+
+	useEffect(() => {
+		if (commitment) {
+			console.log(commitment)
+			commitName()
+		}
+	}, [commitment])
 
 	const { data: commitTxSettled, isLoading: commitTxIsPending } =
 		useWaitForTransaction({
@@ -102,7 +128,7 @@ export default function ENS() {
 			},
 		})
 
-	const { write: registerName } = useContractWrite({
+	const { data: registerNameData, write: registerName } = useContractWrite({
 		...ensRegistrarConfig,
 		functionName: 'register',
 		args: [nameToRegister, connectedAccount, '31556952', secret],
@@ -113,9 +139,11 @@ export default function ENS() {
 			toast.error(err.message)
 		},
 		onSuccess(tx) {
+			console.log(tx)
 			toast.success('Registration transaction submitted!')
 		},
 	})
+
 	return (
 		<>
 			<Head>
@@ -238,7 +266,24 @@ export default function ENS() {
 					<h2 className="section__title">Write</h2>
 					<div className="grid grid--2">
 						<Card label="Register .eth name">
-							{commitTxSettled && readyToRegister ? (
+							{registerNameData ? (
+								<p>
+									<a
+										href={`https://${
+											Number(registerNameData.gasPrice) <
+											2000000000 // if gas is < 2 gwei, its a testnet
+												? 'rinkeby.'
+												: ''
+										}etherscan.io/tx/${
+											registerNameData.hash
+										}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										View on Etherscan
+									</a>
+								</p>
+							) : commitTxSettled && readyToRegister ? (
 								// Register name
 								<div className="input-group">
 									<button onClick={() => registerName()}>
@@ -253,17 +298,15 @@ export default function ENS() {
 								</p>
 							) : commitTxIsPending ? (
 								// Submitted to the blockchain
-								<div>
-									<p>
-										<a
-											href={`https://rinkeby.etherscan.io/tx/${commitNameTxData?.hash}`}
-											target="_blank"
-											rel="noreferrer"
-										>
-											View on Etherscan
-										</a>
-									</p>
-								</div>
+								<p>
+									<a
+										href={`https://rinkeby.etherscan.io/tx/${commitNameTxData?.hash}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										View on Etherscan
+									</a>
+								</p>
 							) : (
 								// Starting point - make commit tx
 								<div className="input-group">
@@ -273,32 +316,17 @@ export default function ENS() {
 										style={{ maxWidth: '11rem' }}
 										onChange={(e) => {
 											setEnsNameToSearch(e.target.value)
-											const name =
-												ensNameToSearch?.endsWith(
-													'.eth'
-												)
-													? ensNameToSearch.split(
+											setNameToRegister(
+												e.target.value?.endsWith('.eth')
+													? e.target.value.split(
 															'.eth'
 													  )[0]
-													: ensNameToSearch
-											setNameToRegister(name)
-											if (name?.length < 3) return
-
-											fetch(
-												`/api/ens-commit?name=${name}&owner=${connectedAccount}`
+													: e.target.value
 											)
-												.then((res) => res.json())
-												.then((data) => {
-													if (data.error) return
-													setSecret(data.secret)
-													setCommitment(
-														data.commitment
-													)
-												})
 										}}
 									/>
 									<button
-										onClick={(e) => {
+										onClick={async (e) => {
 											if (
 												!nameToRegister ||
 												nameToRegister?.length < 3
@@ -308,15 +336,19 @@ export default function ENS() {
 												)
 											}
 
-											console.log({
-												name: nameToRegister,
-												owner: connectedAccount,
-												secret: secret,
-											})
+											// Check if name is available
+											if (!checkAvailability) {
+												return toast.error(
+													'That name is not available'
+												)
+											}
 
-											// set button as disabled
-											e.target.disabled = true
-											commitName()
+											setSecret(
+												'0x' +
+													crypto
+														.randomBytes(32)
+														.toString('hex')
+											)
 										}}
 									>
 										Begin
@@ -324,7 +356,14 @@ export default function ENS() {
 								</div>
 							)}
 						</Card>
-						<Card label="Delegate $ENS">
+						<Card
+							label={`Delegate ${
+								connectedAccount &&
+								Number(balance?.formatted) > 0
+									? Number(balance?.formatted)
+									: ''
+							} $ENS`}
+						>
 							<div className="input-group">
 								<input
 									type="text"
