@@ -96,12 +96,6 @@ export default function ENS() {
 		useWaitForTransaction({
 			hash: commitNameTxData?.hash,
 			onSuccess(data) {
-				console.log(data)
-				console.log({
-					nameToRegister: nameToRegister,
-					owner: connectedAccount,
-					secret: secret,
-				})
 				setTimeout(() => {
 					setReadyToRegister(true)
 				}, 60 * 1000)
@@ -119,7 +113,7 @@ export default function ENS() {
 			toast.error(err.message)
 		},
 		onSuccess(tx) {
-			toast.success('Name registered')
+			toast.success('Registration transaction submitted!')
 		},
 	})
 	return (
@@ -279,10 +273,6 @@ export default function ENS() {
 										style={{ maxWidth: '11rem' }}
 										onChange={(e) => {
 											setEnsNameToSearch(e.target.value)
-										}}
-									/>
-									<button
-										onClick={() => {
 											const name =
 												ensNameToSearch?.endsWith(
 													'.eth'
@@ -291,37 +281,40 @@ export default function ENS() {
 															'.eth'
 													  )[0]
 													: ensNameToSearch
-											if (!name) {
-												return toast.error(
-													'Please enter a valid name'
-												)
-											}
+											setNameToRegister(name)
+											if (name?.length < 3) return
 
 											fetch(
 												`/api/commit?name=${name}&owner=${connectedAccount}`
 											)
 												.then((res) => res.json())
 												.then((data) => {
-													if (data.error) {
-														return toast.error(
-															data.error
-														)
-													} else {
-														setSecret(data.secret)
-														setNameToRegister(name)
-														setCommitment(
-															data.commitment
-														)
-														toast.success(
-															'Got commitment info'
-														)
-													}
+													if (data.error) return
+													setSecret(data.secret)
+													setCommitment(
+														data.commitment
+													)
 												})
-												.then(() => commitName())
-												.catch((err) => {
-													toast.error('Unknown error')
-													console.log(err)
-												})
+										}}
+									/>
+									<button
+										onClick={() => {
+											if (
+												!nameToRegister ||
+												nameToRegister?.length < 3
+											) {
+												return toast.error(
+													'Please enter a valid name'
+												)
+											}
+
+											console.log({
+												name: nameToRegister,
+												owner: connectedAccount,
+												secret: secret,
+											})
+
+											commitName()
 										}}
 									>
 										Begin
