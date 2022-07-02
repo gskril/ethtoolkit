@@ -136,6 +136,7 @@ export default function ENS() {
 		args: [nameToRegister, connectedAccount, registrationDuration, secret],
 		overrides: {
 			value: (Number(priceOfName) + 100000000).toString(), // add 0.1 gwei to avoid pricing bug
+			gasLimit: '285000',
 		},
 		onError(err) {
 			toast.error(err.message)
