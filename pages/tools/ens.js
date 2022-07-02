@@ -286,11 +286,14 @@ export default function ENS() {
 								</>
 							) : registerNameData ? (
 								// Name registration transaction is pending
-								<p>
+								<>
+									<p>You&apos;re transaction is pending</p>
 									<a
 										href={`https://${
 											Number(registerNameData.gasPrice) <
-												2000000000 && 'rinkeby.' // if gas is < 2 gwei, its a testnet
+											2000000000
+												? 'rinkeby.'
+												: '' // if gas is < 2 gwei, its a testnet
 										}etherscan.io/tx/${
 											registerNameData.hash
 										}`}
@@ -299,7 +302,7 @@ export default function ENS() {
 									>
 										View on Etherscan
 									</a>
-								</p>
+								</>
 							) : commitTxSettled && readyToRegister ? (
 								// Register name
 								<div className="input-group">
@@ -315,20 +318,23 @@ export default function ENS() {
 								</p>
 							) : commitTxIsPending ? (
 								// Submitted to the blockchain
-								<p>
+								<>
+									<p>You&apos;re transaction is pending</p>
 									<a
 										href={`https://${
 											Number(commitNameTxData?.gasPrice) <
-												2000000000 && 'rinkeby.'
+											2000000000
+												? 'rinkeby.'
+												: '' // if gas is < 2 gwei, its a testnet
 										}etherscan.io/tx/${
 											commitNameTxData?.hash
-										}`} // if gas is < 2 gwei, its a testnet
+										}`}
 										target="_blank"
 										rel="noreferrer"
 									>
 										View on Etherscan
 									</a>
-								</p>
+								</>
 							) : (
 								// Starting point - make commit tx
 								<div className="input-group">
