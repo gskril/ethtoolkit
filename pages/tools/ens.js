@@ -132,10 +132,17 @@ export default function ENS() {
 
 	const { data: registerNameData, write: registerName } = useContractWrite({
 		...ensRegistrarConfig,
-		functionName: 'register',
-		args: [nameToRegister, connectedAccount, registrationDuration, secret],
+		functionName: 'registerWithConfig',
+		args: [
+			nameToRegister,
+			connectedAccount,
+			registrationDuration,
+			secret,
+			'0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41',
+			connectedAccount,
+		],
 		overrides: {
-			value: (Number(priceOfName) + 100000000).toString(), // add 0.1 gwei to avoid pricing bug
+			value: (Number(priceOfName) + 1000000000).toString(), // add 1 gwei to avoid pricing bug
 			gasLimit: '285000',
 		},
 		onError(err) {
@@ -374,7 +381,7 @@ export default function ENS() {
 											}
 
 											const data = await fetch(
-												`/api/ens-commit?name=${nameToRegister}&owner=${connectedAccount}&chain=${chain?.id}`
+												`/api/ens-commit?name=${nameToRegister}&owner=${connectedAccount}&chain=${chain?.id}&config`
 											)
 												.then((res) => res.json())
 												.catch((err) => {

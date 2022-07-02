@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import registrarAbi from '../../lib/ens-registry-abi.json'
 
 export default async function commit(req, res) {
-	const { chain, name, owner } = req.query
+	const { chain, config, name, owner } = req.query
 	const network = chain == 4 ? 'rinkeby' : 'mainnet'
 
 	const provider = new ethers.providers.InfuraProvider(network, {
@@ -24,9 +24,19 @@ export default async function commit(req, res) {
 	}
 
 	const secret = '0x' + crypto.randomBytes(32).toString('hex')
-	const commitment = await contract.makeCommitment(name, owner, secret)
+	const commitment =
+		config == undefined
+			? await contract.makeCommitment(name, owner, secret)
+			: await contract.makeCommitmentWithConfig(
+					name,
+					owner,
+					secret,
+					'0x4976fb03C32e5B8cfe2b6cCB31c09Ba78EBaBa41',
+					owner
+			  )
 	res.status(200).json({
 		commitment: commitment,
 		secret: secret.toString('hex'),
+		withConfig: config != undefined,
 	})
 }
