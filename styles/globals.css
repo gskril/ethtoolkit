@@ -141,6 +141,10 @@ button:focus-visible {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.card a {
+  color: var(--blue-300);
+}
+
 .section {
   margin-bottom: 2rem;
 }
