@@ -35,14 +35,6 @@ export default function ENS() {
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
 	const [selectedName, setSelectedName] = useState(null)
 
-	const { chain } = useNetwork()
-	const { data: balance } = useBalance({
-		addressOrName: connectedAccount && connectedAccount,
-		token: ensTokenAddress,
-		chainId: 1,
-	})
-
-	const { address: connectedAccount } = useAccount()
 	const ensTokenAbi = require('../../lib/ens-token-abi.json')
 	const ensRegistryAbi = require('../../lib/ens-registry-abi.json')
 	const ensTokenAddress = '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72'
@@ -55,6 +47,14 @@ export default function ENS() {
 		addressOrName: ensTokenAddress,
 		contractInterface: ensTokenAbi,
 	}
+
+	const { chain } = useNetwork()
+	const { address: connectedAccount } = useAccount()
+	const { data: balance } = useBalance({
+		addressOrName: connectedAccount && connectedAccount,
+		token: ensTokenAddress,
+		chainId: 1,
+	})
 
 	// Delegate on chain
 	const { write: delegateTokens } = useContractWrite({
@@ -141,6 +141,14 @@ export default function ENS() {
 			toast.success('Registration transaction submitted!')
 		},
 	})
+
+	const { data: nameRegistered, isLoading: nameRegisteredIsPending } =
+		useWaitForTransaction({
+			hash: registerNameData?.hash,
+			onSuccess() {
+				toast.success('Name registered!')
+			},
+		})
 
 	return (
 		<>
@@ -264,7 +272,20 @@ export default function ENS() {
 					<h2 className="section__title">Write</h2>
 					<div className="grid grid--2">
 						<Card label="Register .eth name">
-							{registerNameData ? (
+							{nameRegistered ? (
+								// Name fully registered
+								<>
+									<p>You now own {nameToRegister}.eth!</p>
+									<a
+										href={`https://app.ens.domains/name/${nameToRegister}.eth/details`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										Manage your name
+									</a>
+								</>
+							) : registerNameData ? (
+								// Name registration transaction is pending
 								<p>
 									<a
 										href={`https://${
@@ -351,6 +372,15 @@ export default function ENS() {
 											} else {
 												setCommitment(data.commitment)
 												setSecret(data.secret)
+												toast(
+													'Warning: this is beta software tested mainly on Rinkeby',
+													{
+														icon: '🚧',
+														style: {
+															maxWidth: '100%',
+														},
+													}
+												)
 											}
 										}}
 									>
