@@ -53,7 +53,7 @@ export default function App({ Component, pageProps }) {
 					/>
 					<meta
 						property="og:image"
-						content="https://ethnyc22.gregskril.com/sharing.png"
+						content="https://ethtoolkit.xyz/sharing.png"
 					/>
 					<meta
 						property="twitter:card"
