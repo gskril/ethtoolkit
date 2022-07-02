@@ -12,7 +12,6 @@ import {
 	useContractWrite,
 	useWaitForTransaction,
 } from 'wagmi'
-import crypto from 'crypto'
 
 export default function ENS() {
 	const ensStats = useFetch(
@@ -81,31 +80,18 @@ export default function ENS() {
 	const [nameToRegister, setNameToRegister] = useState(null)
 	const [readyToRegister, setReadyToRegister] = useState(false)
 
-	const { data: makeCommitmentData } = useContractRead({
-		...ensRegistrarConfig,
-		functionName: secret && 'makeCommitment',
-		args: [nameToRegister, connectedAccount, secret],
-		onSuccess(data) {
-			setCommitment(data)
-		},
-	})
-
 	const { data: commitNameTxData, write: commitName } = useContractWrite({
 		...ensRegistrarConfig,
 		functionName: 'commit',
-		args: makeCommitmentData,
+		args: commitment,
 		onError(err) {
 			toast.error(err.message)
-			console.log({
-				name: nameToRegister,
-				owner: connectedAccount,
-				secret: secret,
-			})
 		},
 		onSuccess(tx) {
 			toast.success('Commitment sent')
 		},
 		onError(err) {
+			toast.error(err.message)
 			setSecret(null)
 			setCommitment(null)
 		},
@@ -113,16 +99,16 @@ export default function ENS() {
 
 	useEffect(() => {
 		if (commitment) {
-			console.log(commitment)
 			commitName()
 		}
-	}, [commitment])
+	}, [commitName, commitment])
 
 	const { data: commitTxSettled, isLoading: commitTxIsPending } =
 		useWaitForTransaction({
 			hash: commitNameTxData?.hash,
-			onSuccess(data) {
+			onSuccess() {
 				setTimeout(() => {
+					// Wait 60 seconds before moving to the next step
 					setReadyToRegister(true)
 				}, 60 * 1000)
 			},
@@ -287,7 +273,7 @@ export default function ENS() {
 								// Register name
 								<div className="input-group">
 									<button onClick={() => registerName()}>
-										Register name
+										Register for 1 Year
 									</button>
 								</div>
 							) : commitTxSettled ? (
@@ -315,7 +301,6 @@ export default function ENS() {
 										placeholder="gregskril.eth"
 										style={{ maxWidth: '11rem' }}
 										onChange={(e) => {
-											setEnsNameToSearch(e.target.value)
 											setNameToRegister(
 												e.target.value?.endsWith('.eth')
 													? e.target.value.split(
@@ -336,19 +321,22 @@ export default function ENS() {
 												)
 											}
 
-											// Check if name is available
-											if (!checkAvailability) {
-												return toast.error(
-													'That name is not available'
-												)
-											}
-
-											setSecret(
-												'0x' +
-													crypto
-														.randomBytes(32)
-														.toString('hex')
+											const data = await fetch(
+												`/api/ens-commit?name=${nameToRegister}&owner=${connectedAccount}`
 											)
+												.then((res) => res.json())
+												.catch((err) => {
+													return toast.error(
+														err.message
+													)
+												})
+
+											if (data.error) {
+												return toast.error(data.error)
+											} else {
+												setCommitment(data.commitment)
+												setSecret(data.secret)
+											}
 										}}
 									>
 										Begin
