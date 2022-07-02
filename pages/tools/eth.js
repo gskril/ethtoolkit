@@ -122,6 +122,7 @@ export default function Eth() {
 									type="text"
 									placeholder="gregskril.eth"
 									style={{ maxWidth: '10rem' }}
+									value={destinationAddress}
 									onChange={(e) => {
 										setDestinationAddress(e.target.value)
 									}}
@@ -228,9 +229,11 @@ export default function Eth() {
 								<button
 									className="btn--primary"
 									onClick={() => {
+										const wallet = Wallet.createRandom()
 										setGeneratedPrivateKey(
-											Wallet.createRandom().privateKey
+											wallet.privateKey
 										)
+										setDestinationAddress(wallet.address)
 									}}
 								>
 									Generate Private Key
