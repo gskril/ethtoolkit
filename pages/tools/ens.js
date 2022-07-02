@@ -127,6 +127,7 @@ export default function ENS() {
 		...ensRegistrarConfig,
 		functionName: readyToRegister && 'rentPrice',
 		args: [nameToRegister, registrationDuration],
+		watch: true,
 	})
 
 	const { data: registerNameData, write: registerName } = useContractWrite({
@@ -134,7 +135,7 @@ export default function ENS() {
 		functionName: 'register',
 		args: [nameToRegister, connectedAccount, registrationDuration, secret],
 		overrides: {
-			value: Number(priceOfName),
+			value: (Number(priceOfName) + 100000000).toString(), // add 0.1 gwei to avoid pricing bug
 		},
 		onError(err) {
 			toast.error(err.message)
@@ -460,7 +461,7 @@ export default function ENS() {
 				}
 
 				.minute-countdown__fill {
-					background-color: var(--blue-600);
+					background-color: var(--blue-500);
 					position: static;
 					height: 100%;
 					top: 0;

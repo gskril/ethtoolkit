@@ -24,6 +24,10 @@ export default function Card({ isLoading, label, type, number, children }) {
 					border-radius: 0.5rem;
 				}
 
+				.card a {
+					color: var(--blue-300);
+				}
+
 				.label {
 					color: var(--gray-400);
 					display: block;
