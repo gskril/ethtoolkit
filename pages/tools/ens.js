@@ -112,13 +112,16 @@ export default function ENS() {
 	const { data: commitTxSettled, isLoading: commitTxIsPending } =
 		useWaitForTransaction({
 			hash: commitNameTxData?.hash,
-			onSuccess() {
-				setTimeout(() => {
-					// Wait 60 seconds before moving to the next step
-					setReadyToRegister(true)
-				}, 60 * 1000)
-			},
 		})
+
+	// Wait 60 seconds after commit before showing register button
+	useEffect(() => {
+		if (commitTxSettled) {
+			setTimeout(() => {
+				setReadyToRegister(true)
+			}, 60 * 1000)
+		}
+	}, [commitTxSettled])
 
 	const { data: priceOfName } = useContractRead({
 		...ensRegistrarConfig,
@@ -312,10 +315,15 @@ export default function ENS() {
 								</div>
 							) : commitTxSettled ? (
 								// Waiting 1 minute before we can register
-								<p>
-									Waiting 1 minute before we can register the
-									name. Stay on this page.
-								</p>
+								<>
+									<p>
+										Wait 1 minute to register your name.
+										Stay on this page.
+									</p>
+									<div className="minute-countdown">
+										<div className="minute-countdown__fill" />
+									</div>
+								</>
 							) : commitTxIsPending ? (
 								// Submitted to the blockchain
 								<>
@@ -439,6 +447,37 @@ export default function ENS() {
 				/>
 			)}
 			<Toaster position="bottom-center" reverseOrder={false} />
+
+			<style jsx>{`
+				.minute-countdown {
+					width: 100%;
+					height: 1rem;
+					background-color: var(--blue-200);
+					margin-top: 1rem;
+					position: relative;
+					overflow: hidden;
+					border-radius: 0.25rem;
+				}
+
+				.minute-countdown__fill {
+					background-color: var(--blue-600);
+					position: static;
+					height: 100%;
+					top: 0;
+					left: 0;
+					width: 10%;
+					animation: countdown 60s linear forwards;
+				}
+
+				@keyframes countdown {
+					from {
+						width: 0%;
+					}
+					to {
+						width: 100%;
+					}
+				}
+			`}</style>
 		</>
 	)
 }
