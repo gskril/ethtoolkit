@@ -8,12 +8,14 @@ import EnsProfile from '../../components/ens-profile'
 import {
 	useAccount,
 	useBalance,
+	useNetwork,
 	useContractRead,
 	useContractWrite,
 	useWaitForTransaction,
 } from 'wagmi'
 
 export default function ENS() {
+	// .eth NFT stats from OpenSea
 	const ensStats = useFetch(
 		'https://api.opensea.io/api/v1/collection/ens/stats'
 	)
@@ -24,6 +26,7 @@ export default function ENS() {
 		ensStats?.data?.stats?.num_owners
 	)
 
+	// $ENS stats from CryptoCompare
 	const ensToken = useFetch(
 		'https://min-api.cryptocompare.com/data/price?fsym=ENS&tsyms=USD'
 	)
@@ -31,6 +34,13 @@ export default function ENS() {
 
 	const [ensNameToSearch, setEnsNameToSearch] = useState(null)
 	const [selectedName, setSelectedName] = useState(null)
+
+	const { chain } = useNetwork()
+	const { data: balance } = useBalance({
+		addressOrName: connectedAccount && connectedAccount,
+		token: ensTokenAddress,
+		chainId: 1,
+	})
 
 	const { address: connectedAccount } = useAccount()
 	const ensTokenAbi = require('../../lib/ens-token-abi.json')
@@ -45,12 +55,6 @@ export default function ENS() {
 		addressOrName: ensTokenAddress,
 		contractInterface: ensTokenAbi,
 	}
-
-	const { data: balance } = useBalance({
-		addressOrName: connectedAccount && connectedAccount,
-		token: ensTokenAddress,
-		chainId: 1,
-	})
 
 	// Delegate on chain
 	const { write: delegateTokens } = useContractWrite({
@@ -74,12 +78,14 @@ export default function ENS() {
 		args: ensNameToSearch ? ensNameToSearch.split('.eth')[0] : ' ',
 	})
 
-	// Make commit
+	// Registration-related variables
+	const registrationDuration = 31556952 // 1 year
 	const [secret, setSecret] = useState(null)
 	const [commitment, setCommitment] = useState(null)
 	const [nameToRegister, setNameToRegister] = useState(null)
 	const [readyToRegister, setReadyToRegister] = useState(false)
 
+	// Make commit
 	const { data: commitNameTxData, write: commitName } = useContractWrite({
 		...ensRegistrarConfig,
 		functionName: 'commit',
@@ -114,12 +120,18 @@ export default function ENS() {
 			},
 		})
 
+	const { data: priceOfName } = useContractRead({
+		...ensRegistrarConfig,
+		functionName: readyToRegister && 'rentPrice',
+		args: [nameToRegister, registrationDuration],
+	})
+
 	const { data: registerNameData, write: registerName } = useContractWrite({
 		...ensRegistrarConfig,
 		functionName: 'register',
-		args: [nameToRegister, connectedAccount, '31556952', secret],
+		args: [nameToRegister, connectedAccount, registrationDuration, secret],
 		overrides: {
-			value: '10000000000000000',
+			value: Number(priceOfName),
 		},
 		onError(err) {
 			toast.error(err.message)
@@ -257,9 +269,7 @@ export default function ENS() {
 									<a
 										href={`https://${
 											Number(registerNameData.gasPrice) <
-											2000000000 // if gas is < 2 gwei, its a testnet
-												? 'rinkeby.'
-												: ''
+												2000000000 && 'rinkeby.' // if gas is < 2 gwei, its a testnet
 										}etherscan.io/tx/${
 											registerNameData.hash
 										}`}
@@ -286,7 +296,12 @@ export default function ENS() {
 								// Submitted to the blockchain
 								<p>
 									<a
-										href={`https://rinkeby.etherscan.io/tx/${commitNameTxData?.hash}`}
+										href={`https://${
+											Number(commitNameTxData?.gasPrice) <
+												2000000000 && 'rinkeby.'
+										}etherscan.io/tx/${
+											commitNameTxData?.hash
+										}`} // if gas is < 2 gwei, its a testnet
 										target="_blank"
 										rel="noreferrer"
 									>
@@ -322,7 +337,7 @@ export default function ENS() {
 											}
 
 											const data = await fetch(
-												`/api/ens-commit?name=${nameToRegister}&owner=${connectedAccount}`
+												`/api/ens-commit?name=${nameToRegister}&owner=${connectedAccount}&chain=${chain?.id}`
 											)
 												.then((res) => res.json())
 												.catch((err) => {
