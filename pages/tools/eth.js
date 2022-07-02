@@ -11,6 +11,7 @@ import {
 	useSendTransaction,
 	useContractWrite,
 } from 'wagmi'
+import { Wallet } from 'ethers'
 
 export default function Eth() {
 	const gasBest = useFetch('https://gas.best/stats')
@@ -68,6 +69,8 @@ export default function Eth() {
 			value: (ethToTransfer * 1000000000000000000).toString(),
 		},
 	})
+
+	const [generatedPrivateKey, setGeneratedPrivateKey] = useState(null)
 
 	return (
 		<>
@@ -218,6 +221,25 @@ export default function Eth() {
 										<label htmlFor="wei">Wei</label>
 									</div>
 								</div>
+							</div>
+						</Card>
+						<Card label="Burner wallet creator">
+							<div>
+								<button
+									className="btn--primary"
+									onClick={() => {
+										setGeneratedPrivateKey(
+											Wallet.createRandom().privateKey
+										)
+									}}
+								>
+									Generate Private Key
+								</button>
+								{generatedPrivateKey && (
+									<p style={{ marginTop: '0.5rem' }}>
+										{generatedPrivateKey}
+									</p>
+								)}
 							</div>
 						</Card>
 					</div>

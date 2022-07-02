@@ -65,6 +65,7 @@ h2 {
 
 p {
   margin: 0;
+  word-break: break-word;
 }
 
 p:not(:last-of-type) {
@@ -122,6 +123,10 @@ button:focus-visible {
 
 .header {
   margin-bottom: 2rem;
+}
+
+.btn--primary {
+  border-radius: 0.25rem;
 }
 
 .tools {
