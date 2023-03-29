@@ -3,8 +3,8 @@ import crypto from 'crypto'
 import registrarAbi from '../../lib/ens-registry-abi.json'
 
 export default async function commit(req, res) {
-	const { chain, config, name, owner } = req.query
-	const network = chain == 4 ? 'rinkeby' : 'mainnet'
+	const { config, name, owner } = req.query
+	const network = 'mainnet'
 
 	const provider = new ethers.providers.InfuraProvider(network, {
 		projectId: process.env.INFURA_PROJECT_ID,

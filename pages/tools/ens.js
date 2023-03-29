@@ -301,14 +301,7 @@ export default function ENS() {
 								<>
 									<p>You&apos;re transaction is pending</p>
 									<a
-										href={`https://${
-											Number(registerNameData.gasPrice) <
-											2000000000
-												? 'rinkeby.'
-												: '' // if gas is < 2 gwei, its a testnet
-										}etherscan.io/tx/${
-											registerNameData.hash
-										}`}
+										href={`https://etherscan.io/tx/${registerNameData.hash}`}
 										target="_blank"
 										rel="noreferrer"
 									>
@@ -338,14 +331,7 @@ export default function ENS() {
 								<>
 									<p>You&apos;re transaction is pending</p>
 									<a
-										href={`https://${
-											Number(commitNameTxData?.gasPrice) <
-											2000000000
-												? 'rinkeby.'
-												: '' // if gas is < 2 gwei, its a testnet
-										}etherscan.io/tx/${
-											commitNameTxData?.hash
-										}`}
+										href={`https://etherscan.io/tx/${commitNameTxData?.hash}`}
 										target="_blank"
 										rel="noreferrer"
 									>
@@ -396,7 +382,7 @@ export default function ENS() {
 												setCommitment(data.commitment)
 												setSecret(data.secret)
 												toast(
-													'Warning: this is beta software tested mainly on Rinkeby',
+													'Warning: this is beta software',
 													{
 														icon: '🚧',
 														style: {
