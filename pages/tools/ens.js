@@ -286,7 +286,13 @@ export default function ENS() {
 												],
 											})
 
-										// format ensRecords from {address, records: {texts: [{ key: "com.twitter", value: "gregskril" }]} to {address, avatar, twitter, telegram, github}
+										if (!ensRecords) {
+											toast.dismiss()
+											toast.error('No ENS profile found')
+											return
+										}
+
+										// reformat ensRecords from {address, records: {texts: [{ key: "com.twitter", value: "gregskril" }]} to { address, twitter }
 										const res =
 											ensRecords.records.texts.reduce(
 												(acc, curr) => {
@@ -298,9 +304,8 @@ export default function ENS() {
 
 										res.address = ensRecords.address
 
-										console.log(res)
 										toast.dismiss()
-										toast.success('Loaded text records')
+										toast.success('ENS profile loaded')
 										setSelectedName({
 											name: name,
 											address: res.address,

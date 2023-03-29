@@ -18,11 +18,6 @@ const tools = [
 		slug: './optimism',
 		color: '#EA3431',
 	},
-	{
-		name: 'Degen Lottery',
-		slug: 'lottery',
-		color: '#19191A',
-	},
 ]
 
 export default function Home() {
@@ -30,7 +25,10 @@ export default function Home() {
 		<div className="container">
 			<Head>
 				<title>Simplify Your Ethereum Toolkit</title>
-				<meta property="og:title" content="Simplify Your Ethereum Toolkit" />
+				<meta
+					property="og:title"
+					content="Simplify Your Ethereum Toolkit"
+				/>
 			</Head>
 
 			<header className="header">
