@@ -42,7 +42,7 @@ export default function EnsProfile({ records, setSelectedName }) {
 						)}
 						<div className="header-text">
 							<span className="name">{records.name}</span>
-							<span className="address">
+							<span className="address" title={records.address}>
 								{records.address.slice(0, 5) +
 									'...' +
 									records.address.slice(38, 42)}

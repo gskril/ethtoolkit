@@ -1,4 +1,6 @@
 import Head from 'next/head'
+import { ethers } from 'ethers'
+import { ENS as ENSjs } from '@ensdomains/ensjs'
 import { useState, useEffect } from 'react'
 import useFetch from '../../hooks/fetch'
 import toast, { Toaster } from 'react-hot-toast'
@@ -14,7 +16,12 @@ import {
 	useWaitForTransaction,
 } from 'wagmi'
 
+const ENSInstance = new ENSjs()
+
 export default function ENS() {
+	const [isMounted, setIsMounted] = useState(false)
+	useEffect(() => setIsMounted(true), [])
+
 	// .eth NFT stats from OpenSea
 	const ensStats = useFetch(
 		'https://api.opensea.io/api/v1/collection/ens/stats'
@@ -240,7 +247,7 @@ export default function ENS() {
 									}}
 								/>
 								<button
-									onClick={() => {
+									onClick={async () => {
 										let name = ensNameToSearch
 
 										if (name?.length < 3) {
@@ -251,25 +258,57 @@ export default function ENS() {
 											name += '.eth'
 										}
 
-										const ensRecords = fetch(
-											`https://ens-records.vercel.app/${name}?avatar`
-										)
-											.then((res) => res.json())
-											.then((data) => {
-												if (data.error) {
-													throw new Error(data.error)
-												} else {
-													setSelectedName(data)
+										await ENSInstance.setProvider(
+											new ethers.providers.InfuraProvider(
+												'mainnet',
+												{
+													projectId:
+														process.env
+															.INFURA_PROJECT_ID,
+													projectSecret:
+														process.env
+															.INFURA_PROJECT_SECRET,
 												}
-											})
-											.catch((err) => {
-												throw new Error(err)
+											)
+										)
+
+										toast.loading('Loading...')
+										const ensRecords =
+											await ENSInstance.getProfile(name, {
+												texts: [
+													'avatar',
+													'description',
+													'com.github',
+													'com.telegram',
+													'com.twitter',
+													'email',
+													'url',
+												],
 											})
 
-										toast.promise(ensRecords, {
-											loading: 'Getting records...',
-											success: 'Records loaded!',
-											error: 'Error fetching data',
+										// format ensRecords from {address, records: {texts: [{ key: "com.twitter", value: "gregskril" }]} to {address, avatar, twitter, telegram, github}
+										const res =
+											ensRecords.records.texts.reduce(
+												(acc, curr) => {
+													acc[curr.key] = curr.value
+													return acc
+												},
+												{}
+											)
+
+										res.address = ensRecords.address
+
+										console.log(res)
+										toast.dismiss()
+										toast.success('Loaded text records')
+										setSelectedName({
+											name: name,
+											address: res.address,
+											avatar: res.avatar,
+											description: res.description,
+											twitter: res['com.twitter'],
+											telegram: res['com.telegram'],
+											github: res['com.github'],
 										})
 									}}
 								>
@@ -400,6 +439,7 @@ export default function ENS() {
 						</Card>
 						<Card
 							label={`Delegate ${
+								isMounted &&
 								connectedAccount &&
 								Number(balance?.formatted) > 0
 									? Number(balance?.formatted)
