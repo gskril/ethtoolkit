@@ -34,7 +34,11 @@ export default function Eth() {
               isLoading={ethPrice.isLoading}
               label="Price (USD)"
               type="number"
-              number={ethPrice.data ? `$${ethPrice.data.toFixed(2)}` : 'N/A'}
+              number={
+                ethPrice.data
+                  ? `$${Number(ethPrice.data.toFixed(2)).toLocaleString()}`
+                  : 'N/A'
+              }
             />
 
             <Card
