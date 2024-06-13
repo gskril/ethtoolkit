@@ -4,10 +4,13 @@ import { useGasPrice } from 'wagmi'
 
 import Card from '@/components/Card'
 import Hero from '@/components/Hero'
-import { useEthPrice } from '@/hooks/useEthPrice'
+import { useTokenPrice } from '@/hooks/useTokenPrice'
 
 export default function Eth() {
-  const ethPrice = useEthPrice()
+  const ethPrice = useTokenPrice({
+    token: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+  })
 
   const gasPrice = useGasPrice({
     chainId: 1,
