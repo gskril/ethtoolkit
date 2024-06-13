@@ -9,12 +9,6 @@ const nextConfig = {
       },
     ]
   },
-  images: {
-    domains: [
-      "metadata.ens.domains",
-    ],
-    minimumCacheTTL: 86400,
-  },
 }
 
 module.exports = nextConfig
